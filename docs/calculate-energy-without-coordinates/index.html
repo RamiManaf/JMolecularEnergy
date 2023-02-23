@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://example.com/calculate-energy-without-coordinates/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Calculate Potential Energy without 3D Coordinates - JME-Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Calculate Potential Energy without 3D Coordinates";
+        var mkdocs_page_input_path = "calculate-energy-without-coordinates.md";
+        var mkdocs_page_url = "/calculate-energy-without-coordinates/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> JME-Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Getting Started</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mmff94/">MMFF94 Force Field</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Calculate Potential Energy without 3D Coordinates</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#load-the-molecule">Load the molecule</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#assign-atom-types">Assign Atom Types</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#add-explicit-hydrogen">Add Explicit Hydrogen</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#assign-3d-coordinates-for-the-molecule">Assign 3D Coordinates For The Molecule</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../energy-minimization/">Energy Minimization</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">JME-Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>Calculate Potential Energy without 3D Coordinates</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="calculate-potential-energy-without-3d-coordinates">Calculate Potential Energy without 3D Coordinates</h1>
+<p>As you know, force fields depends on the 3D structure of the molecule for calculating potential energy. However, in some cases we don't have initial coordinates as we are importing from chemical formats that doesn't support encoding 3D coordinates such as SMILES or we are have converted implicit hydrogens to explicit ones. In that case you have to follow some steps to get an initial 3D coordinates for your molecule. We will demonstrate loading molecule from SMILES as the worst case.</p>
+<h2 id="load-the-molecule">Load the molecule</h2>
+<p>Load the molecule from SMILES using CDK:</p>
+<pre><code class="language-java">IAtomContainer container = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(&quot;CCCC&quot;);
+</code></pre>
+<h2 id="assign-atom-types">Assign Atom Types</h2>
+<p>If your atoms are not propertly configured in CDK, then JME could give wrong results. This is true especially for assigning formal charges for nitrogens in your molecule.</p>
+<pre><code class="language-java">AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+</code></pre>
+<h2 id="add-explicit-hydrogen">Add Explicit Hydrogen</h2>
+<p>After assigning atom types you can add implicit hydrogens based on atom types assigned. Then make sure to convert the implicit hydrogens to explicit ones.</p>
+<pre><code class="language-java">CDKHydrogenAdder.getInstance(SilentChemObjectBuilder.getInstance()).addImplicitHydrogens(container);
+AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+</code></pre>
+<h2 id="assign-3d-coordinates-for-the-molecule">Assign 3D Coordinates For The Molecule</h2>
+<p>You can assign initial 3D Coordinates manually or use the CDK <code>ModelBuilder3D</code> to assign preferred atom positions based on your molecule. </p>
+<pre><code class="language-java">ModelBuilder3D.getInstance(TemplateHandler3D.getInstance(), &quot;mmff94&quot;, SilentChemObjectBuilder.getInstance()).generate3DCoordinates(container, false);
+</code></pre>
+<p>Finally you can calculate potential energy as normal.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../mmff94/" class="btn btn-neutral float-left" title="MMFF94 Force Field"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../energy-minimization/" class="btn btn-neutral float-right" title="Energy Minimization">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../mmff94/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../energy-minimization/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://example.com/mmff94/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>MMFF94 Force Field - JME-Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "MMFF94 Force Field";
+        var mkdocs_page_input_path = "mmff94.md";
+        var mkdocs_page_url = "/mmff94/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> JME-Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Getting Started</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">MMFF94 Force Field</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#mmff94-energy-terms">MMFF94 Energy Terms</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../calculate-energy-without-coordinates/">Calculate Potential Energy without 3D Coordinates</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../energy-minimization/">Energy Minimization</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">JME-Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>MMFF94 Force Field</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="mmff94-force-field">MMFF94 Force Field</h1>
+<p>MMFF94  is an empirical force field that is optimized for calculating potential energy of organic molecules. The force fields have two subdivisions MMFF94 &amp; MMFF94s (stands for static). MMFF94 is the first one that is intended for simulation while MMFF94s is optimized for energy minimization. You can choose which one through the constructor boolean parameter of the force field. Use <code>true</code> for MMFF94s and <code>false</code> for MMFF94.</p>
+<pre><code class="language-java">MMFF94 mmff94 = new MMFF94(false);
+</code></pre>
+<h2 id="mmff94-energy-terms">MMFF94 Energy Terms</h2>
+<p>The force field use several terms to calculate potential energy of the molecule.
+<img alt="Force Field" src="../img/forcefield.png" />
+The forces are divided to bonded and non-bonded interactions:
+* Bonded Interactions:
+  * Bond Stretching: for calculating energy based on the distance between two bonded atoms.
+  * Angle Bending: the angle between three bonded atoms.
+  * Stretch Bend Interaction: A force that increase the bonds when the angle between three bonded atoms decrease. This is used to correct the structure of the molecule.
+  * Torsion: This term forces angle formed between four bonded atoms to be at certain angle. This angle is also called dihydral angle.
+  * Out Of Plane: This term is used to describe the effect of the angle formed when three atoms at least connect to a central atom. Two end atoms and the central atom can form a plane which the third end atom is out of it by certain angle. This term is used usually to correct the Sp2 hybridized central atom planarity.
+* Non-bonded Interactions:
+  * Van Der Waals: Calculate the van der waals force between two non-bonded atoms.
+  * Electrostatic Interaction: This term calculates electrostatic interaction energy between atoms. Note that not only atoms with formal charges are included as MMFF94 assign partial charges for unionized atoms.
+ ## Implementation
+ MMFF94 instance when first created loads all the force fields parameters needed. Before calculating energy to any molecule you have to assign parameters to this molecule first. This process prevent MMFF94 from searching for proper paramters for the molecule each time you want to calculate the energy.</p>
+<p>The partial charges are assigned to the molecule and you can retrive them using the following code:
+ <code>java
+ atomContainer.getAtom(0).getCharge();</code>
+ For more informations about MMFF94 implementation you can see the original papers:</p>
+<ul>
+<li><a href="https://doi.org/10.1002/(SICI)1096-987X(199604)17:5/6&lt;490::AID-JCC1&gt;3.0.CO;2-P">Merck molecular force field. I. Basis, form, scope, parameterization, and performance of MMFF94</a></li>
+<li><a href="https://doi.org/10.1002/(SICI)1096-987X(199604)17:5/6%3C520::AID-JCC2%3E3.0.CO;2-W">Merck molecular force field. II. MMFF94 van der Waals and electrostatic parameters for intermolecular interactions</a></li>
+<li><a href="https://doi.org/10.1002/(SICI)1096-987X(199604)17:5/6&lt;553::AID-JCC3&gt;3.0.CO;2-T">Merck molecular force field. III. Molecular geometries and vibrational frequencies for MMFF94.</a></li>
+<li><a href="https://doi.org/10.1002/(SICI)1096-987X(199604)17:5/6&lt;587::AID-JCC4&gt;3.0.CO;2-Q">Merck molecular force field. IV. conformational energies and geometries for MMFF94</a></li>
+<li><a href="https://doi.org/10.1002/(SICI)1096-987X(199604)17:5/6&lt;616::AID-JCC5&gt;3.0.CO;2-X">Merck molecular force field. V. Extension of MMFF94 using experimental data, additional computational data, and empirical rules</a></li>
+<li><a href="https://doi.org/10.1002/(SICI)1096-987X(199905)20:7&lt;730::AID-JCC8&gt;3.0.CO;2-T">MMFF VI. MMFF94s option for energy minimization studies</a></li>
+<li><a href="https://doi.org/10.1002/(SICI)1096-987X(199905)20:7&lt;720::AID-JCC7&gt;3.0.CO;2-X">MMFF VII. Characterization of MMFF94, MMFF94s, and other widely available force fields for conformational energies and for intermolecular-interaction energies and geometries</a></li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Getting Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../calculate-energy-without-coordinates/" class="btn btn-neutral float-right" title="Calculate Potential Energy without 3D Coordinates">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../calculate-energy-without-coordinates/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
