@@ -1,166 +1,304 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://example.com/" />
-      <link rel="shortcut icon" href="img/favicon.ico" />
-    <title>JME-Docs</title>
-    <link rel="stylesheet" href="css/theme.css" />
-    <link rel="stylesheet" href="css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
-    
-      <script>
-        // Current page data
-        var mkdocs_page_name = "Getting Started";
-        var mkdocs_page_input_path = "index.md";
-        var mkdocs_page_url = "/";
-      </script>
-    
-    <script src="js/jquery-3.6.0.min.js" defer></script>
-    <!--[if lt IE 9]>
-      <script src="js/html5shiv.min.js"></script>
-    <![endif]-->
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
-      <script>hljs.initHighlightingOnLoad();</script> 
-</head>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
 
-<body class="wy-body-for-nav" role="document">
+    <head>
+        <title>Java Molecular Energy</title>
+        <meta name="title" content="Java Molecular Energy">
+        <meta name="description" content="A Java library that support various operations in force fields">
+        <meta name="keywords" content="molecule, force field, potential energy, energy minimization, Potential energy surface, MMFF94, MMFF94s, Partial Charges, chemistry development kit, QSAR, Drug design">
+        <meta name="robots" content="index, follow">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+        <style>
+            .screen {
+                min-height: 100vh;
+            }
 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-    <div class="wy-side-scroll">
-      <div class="wy-side-nav-search">
-          <a href="." class="icon icon-home"> JME-Docs
-        </a><div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
-      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
-      </div>
+            .navbar {
+                background-color: transparent;
+            }
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href=".">Getting Started</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#install-java-molecular-energy">Install Java Molecular Energy</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#load-the-molecule">Load the Molecule</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#calculate-the-potential-energy-in-mmff94">Calculate The Potential Energy in MMFF94</a>
-    </li>
-    </ul>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="mmff94/">MMFF94 Force Field</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="calculate-energy-without-coordinates/">Calculate Potential Energy without 3D Coordinates</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="energy-minimization/">Energy Minimization</a>
-                </li>
-              </ul>
-      </div>
-    </div>
-    </nav>
+            .foreground {
+                color: white;
+                overflow: hidden;
+            }
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href=".">JME-Docs</a>
-        
-      </nav>
-      <div class="wy-nav-content">
-        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-      <li>Getting Started</li>
-    <li class="wy-breadcrumbs-aside">
-    </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-            <div class="section" itemprop="articleBody">
-              
-                <h1 id="quick-start-tutorial">Quick Start Tutorial</h1>
-<p>In this tutorial, we'll show you how to use Java Molecular Energy to calculate the potential energy of a molecule using the MMFF94 force field.</p>
-<h2 id="install-java-molecular-energy">Install Java Molecular Energy</h2>
-<p>Before we can use Java Molecular Energy, we need to install it. Just add it as a dependency in you maven or gradle build system.</p>
-<pre><code class="language-xml">&lt;dependency&gt;
+            .foreground img {
+                width: 100%;
+            }
+
+            .headline {
+                font-size: 23pt;
+                font-weight: 700;
+            }
+
+            .side-img {
+                width: 70%;
+            }
+
+            nav i {
+                font-size: 15pt;
+            }
+
+            .nav-link {
+                font-size: 15pt;
+                margin: auto 20px;
+            }
+
+            .list li::marker {
+                content: "➔ ";
+            }
+
+            .card {
+                width: 20rem;
+                text-align: center;
+                filter: drop-shadow(0 3px 10px rgb(0 0 0 / 10%));
+                border: none;
+            }
+
+            .card-img-top {
+                height: 100px;
+                width: auto;
+                object-fit: contain;
+            }
+
+            .black-container {
+                background-color: black;
+                color: white;
+            }
+
+            footer {
+                background-color: #111;
+                color: white;
+            }
+
+            footer .head-text {
+                font-weight: 700;
+                width: fit-content;
+            }
+
+            footer li::marker {
+                content: "";
+            }
+
+            footer li i {
+                font-size: 10pt;
+            }
+
+            footer ul {
+                padding-left: 0px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="screen black-container">
+            <nav class="navbar navbar-expand-lg navbar-dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#" style="font-size: xx-large">JME</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#about">About</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/RamiManaf/JMolecularEnergy"><i class="fa-brands fa-github pe-1"></i> Github</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="docs/"><i class="fa-solid fa-book pe-1"></i> Docs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#download"><i class="fa-solid fa-download pe-1"></i> Download</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div class="container-fluid foreground">
+                <div class="row">
+                    <div class="col-lg-6 col-sm-12 d-flex flex-column justify-content-center">
+                        <div class="ps-3">
+                            <h2 style="font-weight: 900; font-size: 40pt">Java Molecular Energy</h2>
+                            <h4 style="color: #cccccc">open-source library for powering innovation through molecular energy
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-12">
+                        <img src="img/fullerene.png" alt="fullerene" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid p-5" id="about">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-row justify-content-center">
+                    <img src="img/forcefield.png" alt="forcefield" class="img-fluid side-img" />
+                </div>
+                <div class="col-lg-6 d-flex flex-column justify-content-center">
+                    <h3 class="mb-3 headline">A Java library that support various operations in force fields</h3>
+                    <h5>JME is designed to help researchers and scientists explore and understand the behavior of molecules
+                        at the atomic level. You can analyze the interactions between atoms and
+                        molecules and optimize molecular structures.</h5>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid black-container">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center p-5">
+                    <p class="mb-3 headline">Calculate potential energy</p>
+                    <h5>Potential energy surface can provide detailed information about the energy of the molecule as a
+                        function of atoms positions. This can provide information about the energy barriers and the most
+                        favorable pathways for the molecule to change its conformation.</h5>
+                </div>
+                <div class="col-lg-6 d-flex flex-row justify-content-center p-5">
+                    <img src="img/energy-suddle.png" alt="energy surface" class="img-fluid side-img" />
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid"
+             style="background-image: url(img/snapshot-1.png); background-size: contain; background-repeat: no-repeat; background-position: 50%;background-attachment: fixed">
+            <div class="row screen p-5" style="background-color: #3333">
+                <div class="offset-lg-6 col-lg-6 col-md-12 d-flex flex-column justify-content-center">
+                    <p class="mb-3 headline">Energy Minimization</p>
+                    <h5>JME supports energy minimization for molecules using gradient descent and adam optimization
+                        algorithms. Minimization can be handful in many situations like:</h5>
+                    <ul class="list">
+                        <li>Predicting 3D structure for molecules</li>
+                        <li>Stabilizing protein conformation before simulation</li>
+                        <li>Finding different conformations of molecules</li>
+                        <li>Finding the most stable conformation of a molecule</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid black-container">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center p-5">
+                    <p class="mb-3 headline">Calculate Partial Charges</p>
+                    <h5>You can easily calculate partial charges for each atom in a molecule.
+                        This powerful feature allows you to gain a deeper understanding of the charge distribution in
+                        molecules, which can be crucial for predicting and analyzing their behavior.
+                    </h5>
+                </div>
+                <div class="col-lg-6 d-flex flex-row justify-content-center p-5">
+                    <img src="img/charges.png" alt="energy surface" class="img-fluid side-img" />
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row p-5 justify-content-center" style="text-align: center">
+                <img src="img/star.png" style="width: 200px" />
+                <h3>JME Features</h3>
+            </div>
+            <div class="d-flex flex-row flex-wrap justify-content-center p-5 pt-0">
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/broom.png" alt="Card image cap">
+                    <div class="card-body">
+                        <h5 class="card-title">Clean Public API</h5>
+                        <p class="card-text">Scientific libraries barely pay attention for providing clean public API. We
+                            believe that a well-designed public API is key to unlocking the full potential of force
+                            fields.</p>
+                    </div>
+                </div>
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/expand.png" alt="Card image cap">
+                    <div class="card-body">
+                        <h5 class="card-title">Extendable</h5>
+                        <p class="card-text">The most thing we appreciate here is the extendability. Many other projects are
+                            not open-source, overtuned to unextendable form or simply have no public low level API.</p>
+                    </div>
+                </div>
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/feathers.png" />
+                    <div class="card-body">
+                        <h5 class="card-title">Lightweight</h5>
+                        <p class="card-text">No complex dependency tree or heavy platform are required! We try to implement
+                            everything with the least requirements.</p>
+                    </div>
+                </div>
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/java.png" />
+                    <div class="card-body">
+                        <h5 class="card-title">Use well established language</h5>
+                        <p class="card-text">JME is built with Java, a versatile programming language that offers
+                            speed, reliability, and scalability</p>
+                    </div>
+                </div>
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/cdk.png" />
+                    <div class="card-body">
+                        <h5 class="card-title">Integrated with CDK</h5>
+                        <p class="card-text">JME is implemented on top of the most famous java library in chemoinformatics.
+                            You can directly use it along with CDK.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid black-container p-5">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center p-5">
+                    <p class="mb-3 headline">Supported Force Fields</h3>
+                    <p>JME now supports two highly regarded force fields, MMFF94 and MMFF94s. Development team has
+                        implemented and nearly fully validated these force fields, and we're continually working on adding
+                        more in the future. We're also hard at work on integrating molecular dynamics into JME. Stay tuned
+                        for more updates insha allah!
+                    </p>
+                </div>
+                <div class="col-lg-6 d-flex flex-row justify-content-center p-5">
+                    <img src="img/dynamics.png" alt="energy surface" class="img-fluid side-img" />
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid p-5" id="download">
+            <div class="row justify-content-center" style="text-align: center">
+                <div class="col-6">
+                    <p class="mb-3 headline">Use JME through Maven</p>
+                    <p>Adding JME to your Maven project is quick and easy. Simply include it as a dependency in your
+                        project's pom.xml file and you'll be up and running in no time.</p>
+                    <div class="border border-secondary p-3"
+                         style="width: fit-content;background-color: #eee; text-align: left; margin: auto">
+                        <pre>
+&lt;dependency&gt;
     &lt;groupId&gt;io.github.ramimanaf&lt;/groupId&gt;
     &lt;artifactId&gt;jme&lt;/artifactId&gt;
     &lt;version&gt;0.1.0&lt;/version&gt;
-&lt;/dependency&gt;
-</code></pre>
-<h2 id="load-the-molecule">Load the Molecule</h2>
-<p>Next, we'll load a molecule into our program. You can use CDK readers to import your molecule as <code>AtomContainer</code>:</p>
-<pre><code class="language-java">import org.openscience.cdk.ChemFile;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.io.Mol2Reader;
-import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
-
-ChemFileManipulator.getAllAtomContainers(new Mol2Reader(getClass().getResourceAsStream(&quot;molecule.mol2&quot;)).read(new ChemFile()));
-IAtomContainer container = containers.get(0);
-</code></pre>
-<p>Make sure that your molecule doesn't have implicit hydrogens and all it's atoms have 3D coordinates. If you still have them you can see the following page.</p>
-<h2 id="calculate-the-potential-energy-in-mmff94">Calculate The Potential Energy in MMFF94</h2>
-<p>Create a MMFF94 object and assign MMFF94 parameters to it. After that you can calculate the potential energy for your molecule:</p>
-<pre><code class="language-java">MMFF94 mmff94 = new MMFF94(false);
-mmff.assignParameters(container);
-System.out.println(&quot;Energy: &quot;+mmff.calculateEnergy(container)+&quot;kcal/mol&quot;);
-</code></pre>
-<p>And that's it!</p>
-              
+&lt;/dependency&gt;</pre>
+                    </div>
+                </div>
             </div>
-          </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="mmff94/" class="btn btn-neutral float-right" title="MMFF94 Force Field">Next <span class="icon icon-circle-arrow-right"></span></a>
-    </div>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-  </div>
-
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-</footer>
-          
         </div>
-      </div>
+        <footer class="container-fluid">
+            <div class="row">
+                <div class="col-lg-3 p-5">
+                    <h3 class="head-text">Contact us</h3>
+                    <a style="text-decoration: none; color: inherit" href="mailto:ramimanaf20001@gmail.com"><i
+                            aria-hidden="true" class="fa-solid fa-envelope me-2"></i>Rami Abdullah</a>
+                </div>
+                <div class="col-lg-3 p-5">
+                    <h3 class="head-text">Icons from Flaticon by</h3>
+                    <ul>
+                        <li><i class="fa-solid fa-chevron-right me-2"></i>imaginationlol</li>
+                        <li><i class="fa-solid fa-chevron-right me-2"></i>Pixel Buddha</li>
+                        <li><i class="fa-solid fa-chevron-right me-2"></i>Freepik</li>
+                    </ul>
+                </div>
+            </div>
+        </footer>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    </body>
 
-    </section>
-
-  </div>
-
-  <div class="rst-versions" role="note" aria-label="Versions">
-  <span class="rst-current-version" data-toggle="rst-current-version">
-    
-    
-    
-      <span><a href="mmff94/" style="color: #fcfcfc">Next &raquo;</a></span>
-    
-  </span>
-</div>
-    <script>var base_url = '.';</script>
-    <script src="js/theme_extra.js" defer></script>
-    <script src="js/theme.js" defer></script>
-      <script src="search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
-            SphinxRtdTheme.Navigation.enable(true);
-        };
-    </script>
-
-</body>
 </html>
-
-<!--
-MkDocs version : 1.4.2
-Build Date UTC : 2023-02-23 15:11:13.868846+00:00
--->
