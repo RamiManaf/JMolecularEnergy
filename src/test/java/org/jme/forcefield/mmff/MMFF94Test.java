@@ -23,7 +23,6 @@
  */
 package org.jme.forcefield.mmff;
 
-import org.jme.forcefield.mmff.MMFF94;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -40,6 +39,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.aromaticity.Kekulization;
 import org.openscience.cdk.config.AtomTypeFactory;
 import org.openscience.cdk.config.atomtypes.OWLAtomTypeMappingReader;
 import org.openscience.cdk.exception.CDKException;
@@ -60,59 +60,96 @@ import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94sTest {
+public class MMFF94Test {
 
     private static MMFF94 mmff94 = new MMFF94(false);
     private static MMFF94 mmff94s = new MMFF94(true);
     private static Map<String, String> sybylToCdk = new HashMap<>();
-    AtomTypeFactory factory = AtomTypeFactory.getInstance("org/openscience/cdk/dict/data/cdk-atom-types.owl", DefaultChemObjectBuilder.getInstance());
-static long m;
+    static long m;
+
     @BeforeClass
     public static void init() {
-        m=System.nanoTime();
+        m = System.nanoTime();
         System.setProperty("cdk.logging.level", "error");
-        Map<String, String> map = new OWLAtomTypeMappingReader(new InputStreamReader(MMFF94sTest.class.getResourceAsStream("/org/openscience/cdk/dict/data/cdk-sybyl-mappings.owl"))).readAtomTypeMappings();
+        Map<String, String> map = new OWLAtomTypeMappingReader(new InputStreamReader(MMFF94Test.class.getResourceAsStream("/org/openscience/cdk/dict/data/cdk-sybyl-mappings.owl"))).readAtomTypeMappings();
         for (Map.Entry<String, String> entry : map.entrySet()) {
             sybylToCdk.put(entry.getValue(), entry.getKey());
         }
     }
-    
+
     @AfterClass
-    public static void test(){
-        System.out.println(System.nanoTime()-m);
+    public static void test() {
+        System.out.println(System.nanoTime() - m);
     }
 
     @Test
     public void testMMFF94() throws IOException, CDKException {
         ArrayList<Float> energyValidation = parseEnergyValidationFile("MMFF94.energies");
         List<IAtomContainer> containers = ChemFileManipulator.getAllAtomContainers(new Mol2Reader(getClass().getResourceAsStream("MMFF94_dative.mol2")).read(new ChemFile()));
+        fixMMFF94Molecules(containers);
         double error = 0;
         int n = 0;
         int total = 0;
-        for (int i = 0; i < energyValidation.size(); i++) {
+        for (int i = 0; i < containers.size(); i++) {
             IAtomContainer container = containers.get(i);
-            if (i == 726) {
-                //fix bond order
-                container.getBond(6).setOrder(IBond.Order.DOUBLE);
-            }
-            try {
-                double energy = calculateMMFF94Energy(container, mmff94);
-                total++;
-                if (Math.abs(energyValidation.get(i) - energy) > .1) {
-                    if (i == 420 || i == 544 || i == 551) {
-                        //known issue.. skip
-                        continue;
-                    }
-                    System.out.println(i + "-" + container.getTitle() + ":\tExpected:\t" + energyValidation.get(i) + "\tFound:\t" + energy);
-                    error += Math.abs(energyValidation.get(i) - energy);
-                    n++;
+            double energy = calculateMMFF94Energy(container, mmff94);
+            total++;
+            if (Math.abs(energyValidation.get(i) - energy) > .1) {
+                if (i == 420 || i == 544 || i == 551) {
+                    //known issue.. skip
+                    Kekulization.kekulize(container);
+                    continue;
                 }
-            } catch (Exception ex) {
+                System.out.println(i + "-" + container.getTitle() + ":\tExpected:\t" + energyValidation.get(i) + "\tFound:\t" + energy);
+                error += Math.abs(energyValidation.get(i) - energy);
+                n++;
             }
         }
         System.out.println("Error:\t" + (error) + "\tN:" + n);
         System.out.println("Percentage:\t" + (n / (float) total) * 100 + "\t" + n + "/" + total);
         Assert.assertEquals(0, n);
+    }
+
+    private void fixMMFF94Molecules(List<IAtomContainer> containers) {
+        for (int i = 0; i < containers.size(); i++) {
+            IAtomContainer container = containers.get(i);
+            if (i == 726) {
+                //fix bond order
+                container.getBond(6).setOrder(IBond.Order.DOUBLE);
+            }
+            if (i == 255 || i == 324 || i == 326) {
+                //fix amine double bond in sulfonamide
+                for (IAtom atom : container.atoms()) {
+                    if (atom.getAtomicNumber() == 16) {
+                        for (IAtom atom2 : container.getConnectedAtomsList(atom)) {
+                            if (atom2.getAtomicNumber() == 7 && atom2.getBondCount() == 2) {
+                                List<IAtom> connectedAtoms = container.getConnectedAtomsList(atom2);
+                                IAtom other = connectedAtoms.get(0) != atom ? connectedAtoms.get(0) : connectedAtoms.get(1);
+                                if (atom2.getBond(atom).getOrder().equals(IBond.Order.SINGLE)
+                                        && atom2.getBond(other).getOrder().equals(IBond.Order.SINGLE)) {
+                                    container.getBond(atom, atom2).setOrder(IBond.Order.DOUBLE);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (i == 445) {
+                //assign formal charges
+                container.getAtom(0).setFormalCharge(-1);
+            } else if (i == 737) {
+                container.getAtom(2).setFormalCharge(-1);
+            } else if (i == 741) {
+                container.getAtom(3).setFormalCharge(1);
+            } else if (i == 742) {
+                container.getAtom(9).setFormalCharge(2);
+            } else if (i == 743) {
+                container.getAtom(9).setFormalCharge(2);
+            } else if (i == 744) {
+                container.getAtom(9).setFormalCharge(3);
+            } else if (i == 752) {
+                container.getAtom(9).setFormalCharge(2);
+            }
+        }
     }
 
     @Test
@@ -124,19 +161,16 @@ static long m;
         int total = 0;
         for (int i = 0; i < energyValidation.size(); i++) {
             IAtomContainer container = containers.get(i);
-            try {
-                double energy = calculateMMFF94Energy(container, mmff94s);
-                total++;
-                if (Math.abs(energyValidation.get(i) - energy) > .1) {
-                    if (i == 210) {
-                        //known issue.. skip
-                        continue;
-                    }
-                    System.out.println(i + "-" + container.getTitle() + ":\tExpected:\t" + energyValidation.get(i) + "\tFound:\t" + energy);
-                    error += Math.abs(energyValidation.get(i) - energy);
-                    n++;
+            double energy = calculateMMFF94Energy(container, mmff94s);
+            total++;
+            if (Math.abs(energyValidation.get(i) - energy) > .1) {
+                if (i == 210) {
+                    //known issue.. skip
+                    continue;
                 }
-            } catch (Exception ex) {
+                System.out.println(i + "-" + container.getTitle() + ":\tExpected:\t" + energyValidation.get(i) + "\tFound:\t" + energy);
+                error += Math.abs(energyValidation.get(i) - energy);
+                n++;
             }
         }
         System.out.println("Error:\t" + (error) + "\tN:" + n);
@@ -156,6 +190,14 @@ static long m;
                     }
                     if (sum == 4) {
                         atom.setFormalCharge(1);
+                    }
+                } else if (atom.getAtomicNumber() == 16) {
+                    //fix bond order
+                    for (IAtom atom2 : container.getConnectedAtomsList(atom)) {
+                        if ((((atom2.getAtomicNumber() == 8 || atom2.getAtomicNumber() == 16) && atom2.getBondCount() == 1))
+                                && atom2.getBond(atom).getOrder().equals(IBond.Order.SINGLE)) {
+                            container.getBond(atom, atom2).setOrder(IBond.Order.DOUBLE);
+                        }
                     }
                 }
             }
