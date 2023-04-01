@@ -101,7 +101,7 @@ public class MMFF94 implements ForceField {
      * @param atomContainer
      */
     public void assignParameters(IAtomContainer atomContainer) {
-        if (!mmff.assignAtomTypes(atomContainer) && debug) {
+        if (!mmff.assignAtomTypes(atomContainer)) {
             LOGGER.warning("Not all atom types are assigned");
         }
         for (IAtom atom : atomContainer.atoms()) {
@@ -440,16 +440,6 @@ public class MMFF94 implements ForceField {
         }
     }
 
-    private boolean isSecondaryN(IAtom iAtom) {
-        int nonHydrogen = 0;
-        for (IAtom connected : iAtom.getContainer().getConnectedAtomsList(iAtom)) {
-            if (connected.getAtomicNumber() != 1) {
-                nonHydrogen++;
-            }
-        }
-        return nonHydrogen == 2;
-    }
-
     /**
      *
      * @param iAtom
@@ -463,19 +453,19 @@ public class MMFF94 implements ForceField {
             switch ((int) iAtom.getProperty(MMFF94_TYPE)) {
                 case 32:
                 case 72: {
-                    int secondaryAmine = 0;
+                    int secondDegreeAmine = 0;
                     int terminalOxygenOrSulfer = 0;
                     for (IAtom neighbor : iAtom.getContainer().getConnectedAtomsList(iAtom)) {
                         for (IAtom neighbor2 : iAtom.getContainer().getConnectedAtomsList(neighbor)) {
-                            if (neighbor2.getAtomicNumber() == 7 && isSecondaryN(neighbor2) && !neighbor2.isAromatic()) {
-                                secondaryAmine++;
+                            if (neighbor2.getAtomicNumber() == 7 && neighbor2.getBondCount() == 2 && !neighbor2.isAromatic()) {
+                                secondDegreeAmine++;
                             } else if ((neighbor2.getAtomicNumber() == 8 || neighbor2.getAtomicNumber() == 16) && neighbor2.getBondCount() == 1) {
                                 terminalOxygenOrSulfer++;
                             }
                         }
-                        if (neighbor.getAtomicNumber() == 16 && terminalOxygenOrSulfer == 2 && secondaryAmine == 1) {
+                        if (neighbor.getAtomicNumber() == 16 && terminalOxygenOrSulfer == 2 && secondDegreeAmine == 1) {
                             //sulfonamide
-                            secondaryAmine = 0;
+                            secondDegreeAmine = 0;
                         }
                         if (neighbor.getAtomicNumber() == 6 && terminalOxygenOrSulfer != 0) {
                             if (terminalOxygenOrSulfer == 1) {
@@ -499,10 +489,10 @@ public class MMFF94 implements ForceField {
                             break ATOM_TYPE_SWITCH;
                         }
                         if (neighborType == 18 && terminalOxygenOrSulfer != 0) {
-                            if (secondaryAmine + terminalOxygenOrSulfer == 2) {
+                            if (secondDegreeAmine + terminalOxygenOrSulfer == 2) {
                                 iAtom.setProperty(MMFF94_FORMAL_CHARGE, 0d);
                             } else {
-                                iAtom.setProperty(MMFF94_FORMAL_CHARGE, -(secondaryAmine + terminalOxygenOrSulfer - 2) / (double) terminalOxygenOrSulfer);
+                                iAtom.setProperty(MMFF94_FORMAL_CHARGE, -(secondDegreeAmine + terminalOxygenOrSulfer - 2) / (double) terminalOxygenOrSulfer);
                             }
                             break ATOM_TYPE_SWITCH;
                         }
