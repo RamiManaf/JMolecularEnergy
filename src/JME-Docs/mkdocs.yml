@@ -1,0 +1,8 @@
+site_name: JME-Docs
+site_url: https://example.com/
+nav:
+    - 'Getting Started': index.md
+    - 'MMFF94 Force Field': mmff94.md
+    - 'Calculate Potential Energy without 3D Coordinates': calculate-energy-without-coordinates.md
+    - 'Energy Minimization': energy-minimization.md
+theme: readthedocs

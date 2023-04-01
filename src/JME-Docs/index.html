@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
+
+    <head>
+        <title>Java Molecular Energy</title>
+        <meta name="title" content="Java Molecular Energy">
+        <meta name="description" content="A Java library that support various operations in force fields">
+        <meta name="keywords" content="molecule, force field, potential energy, energy minimization, Potential energy surface, MMFF94, MMFF94s, Partial Charges, chemistry development kit, QSAR, Drug design">
+        <meta name="robots" content="index, follow">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+        <style>
+            .screen {
+                min-height: 100vh;
+            }
+
+            .navbar {
+                background-color: transparent;
+            }
+
+            .foreground {
+                color: white;
+                overflow: hidden;
+            }
+
+            .foreground img {
+                width: 100%;
+            }
+
+            .headline {
+                font-size: 23pt;
+                font-weight: 700;
+            }
+
+            .side-img {
+                width: 70%;
+            }
+
+            nav i {
+                font-size: 15pt;
+            }
+
+            .nav-link {
+                font-size: 15pt;
+                margin: auto 20px;
+            }
+
+            .list li::marker {
+                content: "➔ ";
+            }
+
+            .card {
+                width: 20rem;
+                text-align: center;
+                filter: drop-shadow(0 3px 10px rgb(0 0 0 / 10%));
+                border: none;
+            }
+
+            .card-img-top {
+                height: 100px;
+                width: auto;
+                object-fit: contain;
+            }
+
+            .black-container {
+                background-color: black;
+                color: white;
+            }
+
+            footer {
+                background-color: #111;
+                color: white;
+            }
+
+            footer .head-text {
+                font-weight: 700;
+                width: fit-content;
+            }
+
+            footer li::marker {
+                content: "";
+            }
+
+            footer li i {
+                font-size: 10pt;
+            }
+
+            footer ul {
+                padding-left: 0px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="screen black-container">
+            <nav class="navbar navbar-expand-lg navbar-dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#" style="font-size: xx-large">JME</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#about">About</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/RamiManaf/JMolecularEnergy"><i class="fa-brands fa-github pe-1"></i> Github</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="docs/"><i class="fa-solid fa-book pe-1"></i> Docs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#download"><i class="fa-solid fa-download pe-1"></i> Download</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div class="container-fluid foreground">
+                <div class="row">
+                    <div class="col-lg-6 col-sm-12 d-flex flex-column justify-content-center">
+                        <div class="ps-3">
+                            <h2 style="font-weight: 900; font-size: 40pt">Java Molecular Energy</h2>
+                            <h4 style="color: #cccccc">open-source library for powering innovation through molecular energy
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-12">
+                        <img src="img/fullerene.png" alt="fullerene" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid p-5" id="about">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-row justify-content-center">
+                    <img src="img/forcefield.png" alt="forcefield" class="img-fluid side-img" />
+                </div>
+                <div class="col-lg-6 d-flex flex-column justify-content-center">
+                    <h3 class="mb-3 headline">A Java library that support various operations in force fields</h3>
+                    <h5>JME is designed to help researchers and scientists explore and understand the behavior of molecules
+                        at the atomic level. You can analyze the interactions between atoms and
+                        molecules and optimize molecular structures.</h5>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid black-container">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center p-5">
+                    <p class="mb-3 headline">Calculate potential energy</p>
+                    <h5>Potential energy surface can provide detailed information about the energy of the molecule as a
+                        function of atoms positions. This can provide information about the energy barriers and the most
+                        favorable pathways for the molecule to change its conformation.</h5>
+                </div>
+                <div class="col-lg-6 d-flex flex-row justify-content-center p-5">
+                    <img src="img/energy-suddle.png" alt="energy surface" class="img-fluid side-img" />
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid"
+             style="background-image: url(img/snapshot-1.png); background-size: contain; background-repeat: no-repeat; background-position: 50%;background-attachment: fixed">
+            <div class="row screen p-5" style="background-color: #3333">
+                <div class="offset-lg-6 col-lg-6 col-md-12 d-flex flex-column justify-content-center">
+                    <p class="mb-3 headline">Energy Minimization</p>
+                    <h5>JME supports energy minimization for molecules using gradient descent and adam optimization
+                        algorithms. Minimization can be handful in many situations like:</h5>
+                    <ul class="list">
+                        <li>Predicting 3D structure for molecules</li>
+                        <li>Stabilizing protein conformation before simulation</li>
+                        <li>Finding different conformations of molecules</li>
+                        <li>Finding the most stable conformation of a molecule</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid black-container">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center p-5">
+                    <p class="mb-3 headline">Calculate Partial Charges</p>
+                    <h5>You can easily calculate partial charges for each atom in a molecule.
+                        This powerful feature allows you to gain a deeper understanding of the charge distribution in
+                        molecules, which can be crucial for predicting and analyzing their behavior.
+                    </h5>
+                </div>
+                <div class="col-lg-6 d-flex flex-row justify-content-center p-5">
+                    <img src="img/charges.png" alt="energy surface" class="img-fluid side-img" />
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row p-5 justify-content-center" style="text-align: center">
+                <img src="img/star.png" style="width: 200px" />
+                <h3>JME Features</h3>
+            </div>
+            <div class="d-flex flex-row flex-wrap justify-content-center p-5 pt-0">
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/broom.png" alt="Card image cap">
+                    <div class="card-body">
+                        <h5 class="card-title">Clean Public API</h5>
+                        <p class="card-text">Scientific libraries barely pay attention for providing clean public API. We
+                            believe that a well-designed public API is key to unlocking the full potential of force
+                            fields.</p>
+                    </div>
+                </div>
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/expand.png" alt="Card image cap">
+                    <div class="card-body">
+                        <h5 class="card-title">Extendable</h5>
+                        <p class="card-text">The most thing we appreciate here is the extendability. Many other projects are
+                            not open-source, overtuned to unextendable form or simply have no public low level API.</p>
+                    </div>
+                </div>
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/feathers.png" />
+                    <div class="card-body">
+                        <h5 class="card-title">Lightweight</h5>
+                        <p class="card-text">No complex dependency tree or heavy platform are required! We try to implement
+                            everything with the least requirements.</p>
+                    </div>
+                </div>
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/java.png" />
+                    <div class="card-body">
+                        <h5 class="card-title">Use well established language</h5>
+                        <p class="card-text">JME is built with Java, a versatile programming language that offers
+                            speed, reliability, and scalability</p>
+                    </div>
+                </div>
+                <div class="card m-3 bg-light">
+                    <img class="card-img-top mt-4" src="img/cdk.png" />
+                    <div class="card-body">
+                        <h5 class="card-title">Integrated with CDK</h5>
+                        <p class="card-text">JME is implemented on top of the most famous java library in chemoinformatics.
+                            You can directly use it along with CDK.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid black-container p-5">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center p-5">
+                    <p class="mb-3 headline">Supported Force Fields</h3>
+                    <p>JME now supports two highly regarded force fields, MMFF94 and MMFF94s. Development team has
+                        implemented and nearly fully validated these force fields, and we're continually working on adding
+                        more in the future. We're also hard at work on integrating molecular dynamics into JME. Stay tuned
+                        for more updates insha allah!
+                    </p>
+                </div>
+                <div class="col-lg-6 d-flex flex-row justify-content-center p-5">
+                    <img src="img/dynamics.png" alt="energy surface" class="img-fluid side-img" />
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid p-5" id="download">
+            <div class="row justify-content-center" style="text-align: center">
+                <div class="col-6">
+                    <p class="mb-3 headline">Use JME through Maven</p>
+                    <p>Adding JME to your Maven project is quick and easy. Simply include it as a dependency in your
+                        project's pom.xml file and you'll be up and running in no time.</p>
+                    <div class="border border-secondary p-3"
+                         style="width: fit-content;background-color: #eee; text-align: left; margin: auto">
+                        <pre>
+&lt;dependency&gt;
+    &lt;groupId&gt;io.github.ramimanaf&lt;/groupId&gt;
+    &lt;artifactId&gt;jme&lt;/artifactId&gt;
+    &lt;version&gt;0.1.0&lt;/version&gt;
+&lt;/dependency&gt;</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="container-fluid">
+            <div class="row">
+                <div class="col-lg-3 p-5">
+                    <h3 class="head-text">Contact us</h3>
+                    <a style="text-decoration: none; color: inherit" href="mailto:ramimanaf20001@gmail.com"><i
+                            aria-hidden="true" class="fa-solid fa-envelope me-2"></i>Rami Abdullah</a>
+                </div>
+                <div class="col-lg-3 p-5">
+                    <h3 class="head-text">Icons from Flaticon by</h3>
+                    <ul>
+                        <li><i class="fa-solid fa-chevron-right me-2"></i>imaginationlol</li>
+                        <li><i class="fa-solid fa-chevron-right me-2"></i>Pixel Buddha</li>
+                        <li><i class="fa-solid fa-chevron-right me-2"></i>Freepik</li>
+                    </ul>
+                </div>
+            </div>
+        </footer>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    </body>
+
+</html>
