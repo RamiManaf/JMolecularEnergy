@@ -31,7 +31,6 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,8 +41,8 @@ import java.util.stream.Collectors;
  */
 class MMFF94Parameters {
 
-    final Hashtable<String, Integer> typeDefinition = new Hashtable<>();
-    final Hashtable<Integer, Integer[]> atomTypeEquivalenceParameters = new Hashtable<>();
+    final HashMap<String, Integer> typeDefinition = new HashMap<>();
+    final HashMap<Integer, Integer[]> atomTypeEquivalenceParameters = new HashMap<>();
     //first static number is the atom which connected by other atoms in the nested map
     //and afstatic fected by the float bond charge when connected to them
     final List<Float[]> bondChargeIncrements = new ArrayList<>();
