@@ -641,9 +641,13 @@ public class MMFF94 implements ForceField {
                 if (index != -1) {
                     for (int z = index; z < mmffParameters.bondChargeIncrements.size(); z++) {
                         Float[] bondChargeIncrement = mmffParameters.bondChargeIncrements.get(z);
-                        if (bondChargeIncrement[1] == i && bondChargeIncrement[2] == j && bondType == bondChargeIncrement[0]) {
-                            qI += (bondChargeIncrement[3] * (reversed ? -1 : 1));
-                            foundParamter = true;
+                        if (bondChargeIncrement[1] == i && bondChargeIncrement[2] <= j) {
+                            if (bondChargeIncrement[2] == j && bondType == bondChargeIncrement[0]) {
+                                qI += (bondChargeIncrement[3] * (reversed ? -1 : 1));
+                                foundParamter = true;
+                                break;
+                            }
+                        } else {
                             break;
                         }
                     }
@@ -1027,7 +1031,7 @@ public class MMFF94 implements ForceField {
     }
 
     private int findAtomTypeEquivalence(int typeName, int index) {
-        Integer[] equivalentTypes = mmffParameters.atomTypeEquivalenceParameters.get(typeName);
+        Integer[] equivalentTypes = mmffParameters.atomTypeEquivalenceParameters.get(typeName - (typeName >= 87 ? 5 : 1));
         if (equivalentTypes == null) {
             return 0;
         } else if (index >= 4) {
@@ -1322,12 +1326,11 @@ public class MMFF94 implements ForceField {
             } else if (midValue < key) {
                 low = mid + 1;
             } else if (midValue == key) {
-                int backShift = mid - 1;
-                while (backShift > -1 && array.get(backShift)[keyIndex] == key) {
-                    backShift--;
+                //sihft back if the previous record has the key
+                while (mid > 0 && array.get(mid - 1)[keyIndex] == key) {
+                    mid--;
                 }
-                backShift++;
-                return backShift;
+                return mid;
             }
         }
         return -1;  // key not found.

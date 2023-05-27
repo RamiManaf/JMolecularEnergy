@@ -42,9 +42,9 @@ import java.util.stream.Collectors;
 class MMFF94Parameters {
 
     final HashMap<String, Integer> typeDefinition = new HashMap<>();
-    final HashMap<Integer, Integer[]> atomTypeEquivalenceParameters = new HashMap<>();
+    final List<Integer[]> atomTypeEquivalenceParameters = new ArrayList<>();
     //first static number is the atom which connected by other atoms in the nested map
-    //and afstatic fected by the float bond charge when connected to them
+    //and affected by the float bond charge when connected to them
     final List<Float[]> bondChargeIncrements = new ArrayList<>();
     final List<StretchParameters> bondStretchParameters = new ArrayList<>();
     final List<StretchEmpiricalParameters> bondStretchEmpiricalParameterses = new ArrayList<>();
@@ -304,14 +304,12 @@ class MMFF94Parameters {
     private void parseAtomTypeEquivalenceParameters() throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("MMFF94-atom-type-equivalence.par"), StandardCharsets.UTF_8))) {
             String line;
-            int n = 0;
             while ((line = reader.readLine()) != null) {
                 if (line.isEmpty() || line.charAt(0) == '*') {
                     continue;
                 }
                 String[] parameter = line.split("\t");
-                atomTypeEquivalenceParameters.put(Integer.valueOf(parameter[1]), new Integer[]{Integer.parseInt(parameter[2]), Integer.parseInt(parameter[3]), Integer.parseInt(parameter[4]), Integer.parseInt(parameter[5])});
-                n++;
+                atomTypeEquivalenceParameters.add(new Integer[]{Integer.parseInt(parameter[2]), Integer.parseInt(parameter[3]), Integer.parseInt(parameter[4]), Integer.parseInt(parameter[5])});
             }
         }
     }
