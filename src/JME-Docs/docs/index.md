@@ -6,7 +6,7 @@ Before we can use Java Molecular Energy, we need to install it. Just add it as a
 <dependency>
     <groupId>io.github.ramimanaf</groupId>
     <artifactId>jme</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 </dependency>
 ```
 ## Load the Molecule
