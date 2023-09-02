@@ -36,8 +36,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.jme.forcefield.GeometryUtils;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IBond;
@@ -229,8 +228,8 @@ public class MMFF94 implements ForceField {
 
         return new MMFF94Parameters.StretchParameters(findBondType(iAtom, jAtom), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kb, r0);
     }
-    
-    private void checkParametersAssigned(IAtom iAtom){
+
+    private void checkParametersAssigned(IAtom iAtom) {
         if (iAtom.getProperty(MMFF94_TYPE) == null) {
             throw new RuntimeException("parameters need to be assigned first");
         }
@@ -682,12 +681,12 @@ public class MMFF94 implements ForceField {
      * @return energy
      */
     public double calculateAngleBendingEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
-        if(iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom)==null){
+        if (iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom) == null) {
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k");
         }
         checkParametersAssigned(iAtom);
         Float[] parameters = findAngleBendingParameters(iAtom, jAtom, kAtom);
-        double angle = calculateAngleBetween(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d());
+        double angle = GeometryUtils.calculateAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) * 180 / Math.PI;
         double deltaAngle = angle - parameters[5];
         if (jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear) {
             return 143.9325 * parameters[4] * (1 + Math.cos(Math.toRadians(angle)));
@@ -707,7 +706,7 @@ public class MMFF94 implements ForceField {
      * @return
      */
     public double calculateStretchBendEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
-        if(iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom)==null){
+        if (iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom) == null) {
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k");
         }
         checkParametersAssigned(iAtom);
@@ -715,7 +714,7 @@ public class MMFF94 implements ForceField {
             return 0;
         }
         Float[] angleBendingParameter = findAngleBendingParameters(iAtom, jAtom, kAtom);
-        double deltaAngle = calculateAngleBetween(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) - angleBendingParameter[5];
+        double deltaAngle = (GeometryUtils.calculateAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) * 180 / Math.PI) - angleBendingParameter[5];
         MMFF94Parameters.StretchParameters ijStretch = iAtom.getContainer().getBond(iAtom, jAtom).<MMFF94Parameters.StretchParameters>getProperty(MMFF94_PARAMETER_STRETCH);
         MMFF94Parameters.StretchParameters jkStretch = iAtom.getContainer().getBond(jAtom, kAtom).<MMFF94Parameters.StretchParameters>getProperty(MMFF94_PARAMETER_STRETCH);
         double deltaRij = iAtom.getPoint3d().distance(jAtom.getPoint3d()) - ijStretch.r0;
@@ -723,8 +722,6 @@ public class MMFF94 implements ForceField {
         Float[] stretchBendParameter = findStretchBendParameters(iAtom, jAtom, kAtom);
         return 2.51210 * (stretchBendParameter[4] * deltaRij + stretchBendParameter[5] * deltaRjk) * deltaAngle;
     }
-
-    private Vector3d ijVector = new Vector3d(), kjVector = new Vector3d(), ljVector = new Vector3d(), perpendicular = new Vector3d();
 
     /**
      * calculates out of plane energy for the atoms
@@ -736,7 +733,7 @@ public class MMFF94 implements ForceField {
      * @return
      */
     public double calculateOutOfPlaneEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom) {
-        if(jAtom.getBond(iAtom) == null || jAtom.getBond(kAtom)==null && jAtom.getBond(lAtom)==null){
+        if (jAtom.getBond(iAtom) == null || jAtom.getBond(kAtom) == null && jAtom.getBond(lAtom) == null) {
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k/l where l is bonded to j");
         }
         checkParametersAssigned(iAtom);
@@ -755,14 +752,7 @@ public class MMFF94 implements ForceField {
                     Float[] parameters = outOfPlaneParameters.get(z);
                     if (parameters[1] == j) {
                         if (((ikl[0] == parameters[0] && ikl[1] == parameters[2] && ikl[2] == parameters[3]))) {
-                            ijVector.sub(iAtom.getPoint3d(), jAtom.getPoint3d());
-                            ijVector.normalize();
-                            kjVector.sub(kAtom.getPoint3d(), jAtom.getPoint3d());
-                            kjVector.normalize();
-                            perpendicular.cross(ijVector, kjVector);
-                            ljVector.sub(lAtom.getPoint3d(), jAtom.getPoint3d());
-                            ljVector.normalize();
-                            double angle = Math.asin(perpendicular.dot(ljVector) / Math.sin(calculateAngleBetween(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) * Math.PI / 180)) * 180 / Math.PI;
+                            double angle = GeometryUtils.calculateOutOfPlaneAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d(), lAtom.getPoint3d()) * 180 / Math.PI;
                             return Math.toRadians(Math.toRadians(143.9325)) * .5 * parameters[4] * angle * angle;
                         }
                     }
@@ -790,7 +780,7 @@ public class MMFF94 implements ForceField {
      * @return
      */
     public double calculateTorsionEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom) {
-        if(iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom)==null && kAtom.getBond(lAtom)==null){
+        if (iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom) == null && kAtom.getBond(lAtom) == null) {
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k-l");
         }
         checkParametersAssigned(iAtom);
@@ -803,12 +793,8 @@ public class MMFF94 implements ForceField {
             iAtom = lAtom;
             lAtom = temp;
         }
-        Vector3d vectorIJ = new Vector3d(iAtom.getPoint3d().x - jAtom.getPoint3d().x, iAtom.getPoint3d().y - jAtom.getPoint3d().y, iAtom.getPoint3d().z - jAtom.getPoint3d().z);
-        Vector3d vectorKJ = new Vector3d(kAtom.getPoint3d().x - jAtom.getPoint3d().x, kAtom.getPoint3d().y - jAtom.getPoint3d().y, kAtom.getPoint3d().z - jAtom.getPoint3d().z);
-        Vector3d vectorJK = new Vector3d(vectorKJ);
-        vectorJK.negate();
-        Vector3d vectorLK = new Vector3d(lAtom.getPoint3d().x - kAtom.getPoint3d().x, lAtom.getPoint3d().y - kAtom.getPoint3d().y, lAtom.getPoint3d().z - kAtom.getPoint3d().z);
-        double torsionAngle = calculateTorsionAngle(vectorIJ, vectorKJ, vectorJK, vectorLK);//in radians
+
+        double torsionAngle = GeometryUtils.calculateTorsionAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d(), lAtom.getPoint3d());//in radians
         Float[] parameters = findTorsionParameters(iAtom, jAtom, kAtom, lAtom);
         return 0.5 * (parameters[5] * (1 + Math.cos(torsionAngle)) + parameters[6] * (1 - Math.cos(2 * torsionAngle)) + parameters[7] * (1 + Math.cos(3 * torsionAngle)));
     }
@@ -1010,18 +996,6 @@ public class MMFF94 implements ForceField {
         throw new RuntimeException("no empirical torsion paramters were found for " + iAtom.getAtomTypeName());
     }
 
-    private Vector3d n1 = new Vector3d(), n2 = new Vector3d();
-
-    private float calculateTorsionAngle(Vector3d ijVector, Vector3d kjVector, Vector3d jkVector, Vector3d klVector) {
-        n1.cross(ijVector, kjVector);
-        n2.cross(jkVector, klVector);
-        return (float) Math.acos(clampToOne(n1.dot(n2) / (n1.length() * n2.length())));
-    }
-
-    private double clampToOne(double n) {
-        return n > 1 ? 1 : (n < -1 ? -1 : n);
-    }
-
     private int findBondType(IAtom iAtom, IAtom jAtom) {
         IBond bond = iAtom.getContainer().getBond(iAtom, jAtom);
         Boolean aromaticBond = bond.<Boolean>getProperty("mmff.arom");
@@ -1065,16 +1039,6 @@ public class MMFF94 implements ForceField {
             throw new ArrayIndexOutOfBoundsException();
         }
         return equivalentTypes[index];
-    }
-
-    private double calculateAngleBetween(Point3d i, Point3d j, Point3d k) {
-        double ux = i.x - j.x;
-        double uy = i.y - j.y;
-        double uz = i.z - j.z;
-        double vx = k.x - j.x;
-        double vy = k.y - j.y;
-        double vz = k.z - j.z;
-        return Math.acos(clampToOne((ux * vx + uy * vy + uz * vz) / (i.distance(j) * k.distance(j)))) * 180 / Math.PI;
     }
 
     private Float[] findAngleBendingParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
