@@ -43,10 +43,11 @@ public class Adam extends EnergyMinimizer {
 
     /**
      * creates a new instance of Adam optimizer
+     *
      * @param forceField the force field used in optimization
      * @param beta1
      * @param beta2
-     * @param epsilon 
+     * @param epsilon
      */
     public Adam(ForceField forceField, double beta1, double beta2, double epsilon) {
         this.forcefield = forceField;
@@ -88,16 +89,20 @@ public class Adam extends EnergyMinimizer {
                     double initialEnergy = forcefield.calculateEnergy(container);
                     double distance = adams[atom.getIndex()][i].optimize((i == 0 ? point.x : (i == 1 ? point.y : point.z)), oneAxisGradient) - (i == 0 ? point.x : (i == 1 ? point.y : point.z));
                     movePoint(point, distance, i);
-                    double difference = forcefield.calculateEnergy(container) - initialEnergy;
-                    atomGradients[i] = -difference / Math.abs(distance);
-                    if (!initializedGradients) {
-                        movePoint(point, -distance, i);
-                    } else {
-                        if (difference > 0) {
+                    if (constraint == null || constraint.check(forcefield, container) || !initializedGradients) {
+                        double difference = forcefield.calculateEnergy(container) - initialEnergy;
+                        atomGradients[i] = -difference / Math.abs(distance);
+                        if (!initializedGradients) {
                             movePoint(point, -distance, i);
                         } else {
-                            lastCalculatedEnergy += difference;
+                            if (difference > 0) {
+                                movePoint(point, -distance, i);
+                            } else {
+                                lastCalculatedEnergy += difference;
+                            }
                         }
+                    } else {
+                        movePoint(point, -distance, i);
                     }
                 }
             }

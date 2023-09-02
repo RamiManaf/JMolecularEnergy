@@ -30,7 +30,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
  * Gradient descent energy minimizer
- * 
+ *
  * @author Rami Manaf Abdullah
  */
 public class GradientDescent extends EnergyMinimizer {
@@ -72,16 +72,20 @@ public class GradientDescent extends EnergyMinimizer {
                     double distance;
                     distance = Math.min(Math.abs(stepSize * oneAxisGradient), .3) * Math.signum(oneAxisGradient);
                     movePoint(point, distance, i);
-                    double difference = forcefield.calculateEnergy(container) - lastCalculatedEnergy;
-                    atomGradients[i] = -difference / (oneAxisGradient);
-                    if (!initializedGradients) {
-                        movePoint(point, -distance, i);
-                    } else {
-                        if (difference > 0) {
+                    if (constraint == null || constraint.check(forcefield, container) || !initializedGradients) {
+                        double difference = forcefield.calculateEnergy(container) - lastCalculatedEnergy;
+                        atomGradients[i] = -difference / (oneAxisGradient);
+                        if (!initializedGradients) {
                             movePoint(point, -distance, i);
                         } else {
-                            lastCalculatedEnergy += difference;
+                            if (difference > 0) {
+                                movePoint(point, -distance, i);
+                            } else {
+                                lastCalculatedEnergy += difference;
+                            }
                         }
+                    }else{
+                        movePoint(point, -distance, i);
                     }
                 }
             }

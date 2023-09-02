@@ -24,6 +24,7 @@
 package org.jme.minimizer;
 
 import java.util.function.BiConsumer;
+import org.jme.forcefield.Constraint;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
@@ -35,6 +36,7 @@ public abstract class EnergyMinimizer {
 
     protected int step;
     protected BiConsumer<Integer, Double> onStepConsumer;
+    protected Constraint constraint;
 
     /**
      * a consumer that is called after each minimization step. It receives two
@@ -44,6 +46,21 @@ public abstract class EnergyMinimizer {
      */
     public void setOnStepConsumer(BiConsumer<Integer, Double> onStepConsumer) {
         this.onStepConsumer = onStepConsumer;
+    }
+
+    /**
+     * set a constraint for atoms movement while energy minimization. The
+     * minimizer will prevent violation of constraints. However, in the case of
+     * any further movement would case a violation, the minimization will stop.
+     *
+     * @param constraint
+     */
+    public void setConstraint(Constraint constraint) {
+        this.constraint = constraint;
+    }
+
+    public Constraint getConstraint() {
+        return constraint;
     }
 
     /**
@@ -59,7 +76,8 @@ public abstract class EnergyMinimizer {
 
     /**
      * returns the step minimizer is currently at it
-     * @return 
+     *
+     * @return
      */
     public int getStep() {
         return step;
