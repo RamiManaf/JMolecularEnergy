@@ -230,7 +230,7 @@ public class MMFF94 implements ForceField {
         return new MMFF94Parameters.StretchParameters(findBondType(iAtom, jAtom), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kb, r0);
     }
     
-    private void checkParapetersAssigned(IAtom iAtom){
+    private void checkParametersAssigned(IAtom iAtom){
         if (iAtom.getProperty(MMFF94_TYPE) == null) {
             throw new RuntimeException("parameters need to be assigned first");
         }
@@ -246,7 +246,7 @@ public class MMFF94 implements ForceField {
     @Override
     public double calculateEnergy(IAtomContainer atomContainer) {
         if (!atomContainer.isEmpty()) {
-            checkParapetersAssigned(atomContainer.getAtom(0));
+            checkParametersAssigned(atomContainer.getAtom(0));
         }
         ArrayList<String>[] arr = new ArrayList[7];
         if (debug) {
@@ -372,7 +372,7 @@ public class MMFF94 implements ForceField {
      */
     public double calculateBondStretchingEnergy(IBond bond) {
         IAtom iAtom = bond.getBegin();
-        checkParapetersAssigned(iAtom);
+        checkParametersAssigned(iAtom);
         IAtom jAtom = bond.getEnd();
         MMFF94Parameters.StretchParameters parameters = bond.getProperty(MMFF94_PARAMETER_STRETCH);
         double deltaR = iAtom.getPoint3d().distance(jAtom.getPoint3d()) - parameters.r0;
@@ -389,8 +389,8 @@ public class MMFF94 implements ForceField {
      * @return
      */
     public double calculateVdwEnergy(IAtom iAtom, IAtom jAtom) {
-        checkParapetersAssigned(iAtom);
-        checkParapetersAssigned(jAtom);
+        checkParametersAssigned(iAtom);
+        checkParametersAssigned(jAtom);
         int i = iAtom.getProperty(MMFF94_TYPE);
         int j = jAtom.getProperty(MMFF94_TYPE);
         //there is a 4 number gap in mmff atom type number (83-86)
@@ -439,8 +439,8 @@ public class MMFF94 implements ForceField {
      * @return
      */
     public double calculateElectrostaticInteractionEnergy(IAtom iAtom, IAtom jAtom, double dielectricConstant) {
-        checkParapetersAssigned(iAtom);
-        checkParapetersAssigned(jAtom);
+        checkParametersAssigned(iAtom);
+        checkParametersAssigned(jAtom);
         double qI = iAtom.getCharge();
         double qJ = jAtom.getCharge();
         double electrostaticEnergy = 332.0716 * qI * qJ / (dielectricConstant * (iAtom.getPoint3d().distance(jAtom.getPoint3d()) + 0.05));
@@ -685,7 +685,7 @@ public class MMFF94 implements ForceField {
         if(iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom)==null){
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k");
         }
-        checkParapetersAssigned(iAtom);
+        checkParametersAssigned(iAtom);
         Float[] parameters = findAngleBendingParameters(iAtom, jAtom, kAtom);
         double angle = calculateAngleBetween(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d());
         double deltaAngle = angle - parameters[5];
@@ -710,7 +710,7 @@ public class MMFF94 implements ForceField {
         if(iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom)==null){
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k");
         }
-        checkParapetersAssigned(iAtom);
+        checkParametersAssigned(iAtom);
         if (jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear) {
             return 0;
         }
@@ -739,7 +739,7 @@ public class MMFF94 implements ForceField {
         if(jAtom.getBond(iAtom) == null || jAtom.getBond(kAtom)==null && jAtom.getBond(lAtom)==null){
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k/l where l is bonded to j");
         }
-        checkParapetersAssigned(iAtom);
+        checkParametersAssigned(iAtom);
         int[] ikl = new int[3];
         ikl[0] = iAtom.getProperty(MMFF94_TYPE);
         int j = jAtom.getProperty(MMFF94_TYPE);
@@ -793,7 +793,7 @@ public class MMFF94 implements ForceField {
         if(iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom)==null && kAtom.getBond(lAtom)==null){
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k-l");
         }
-        checkParapetersAssigned(iAtom);
+        checkParametersAssigned(iAtom);
         if ((Integer) kAtom.getProperty(MMFF94_TYPE) < (Integer) jAtom.getProperty(MMFF94_TYPE)
                 || (jAtom.getProperty(MMFF94_TYPE).equals((Integer) kAtom.getProperty(MMFF94_TYPE)) && (Integer) iAtom.getProperty(MMFF94_TYPE) > (Integer) lAtom.getProperty(MMFF94_TYPE))) {
             IAtom temp = jAtom;
@@ -1007,7 +1007,7 @@ public class MMFF94 implements ForceField {
                 return torsionEmpiricalParamter;
             }
         }
-        throw new RuntimeException("no empirical torsion paramters was found for " + iAtom.getAtomTypeName());
+        throw new RuntimeException("no empirical torsion paramters were found for " + iAtom.getAtomTypeName());
     }
 
     private Vector3d n1 = new Vector3d(), n2 = new Vector3d();
