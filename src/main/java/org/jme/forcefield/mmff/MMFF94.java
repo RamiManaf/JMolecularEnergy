@@ -33,6 +33,8 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.mmff.MMFF94Parameters.VdwParameters;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -111,7 +113,7 @@ public class MMFF94 implements ForceField {
             atom.setProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES, mmffParameters.geometricProperties.get(atomType - (atomType >= 87 ? 5 : 1)));
         }
         for (IBond bond : atomContainer.bonds()) {
-            if (bond.getProperty("mmff.arom") != null && ((boolean) bond.getProperty("mmff.arom")) == true) {
+            if (Objects.equals(bond.getProperty("mmff.arom"), true)) {
                 bond.setFlag(CDKConstants.ISAROMATIC, true);
                 bond.getBegin().setFlag(CDKConstants.ISAROMATIC, true);
                 bond.getEnd().setFlag(CDKConstants.ISAROMATIC, true);
@@ -148,11 +150,21 @@ public class MMFF94 implements ForceField {
             int j = jAtom.getProperty(MMFF94_TYPE);
             int bondType = findBondType(iAtom, jAtom);
             boolean found = false;
-            for (MMFF94Parameters.StretchParameters parameters : mmffParameters.bondStretchParameters) {
+            long t1 = System.nanoTime();
+            int index = Collections.binarySearch(mmffParameters.bondStretchParameters, new MMFF94Parameters.StretchParameters(bondType, i, j, 0, 0), (MMFF94Parameters.StretchParameters p1, MMFF94Parameters.StretchParameters p2) -> {
+                if (p1.i != p2.i) {
+                    return Integer.compare(p1.i, p2.i);
+                } else if (p1.j != p2.j) {
+                    return Integer.compare(p1.j, p2.j);
+                } else {
+                    return Integer.compare(p1.bondType, p2.bondType);
+                }
+            });
+            if (index >= 0) {
+                MMFF94Parameters.StretchParameters parameters = mmffParameters.bondStretchParameters.get(index);
                 if (parameters.i == i && parameters.j == j && parameters.bondType == bondType) {
                     bond.setProperty(MMFF94_PARAMETER_STRETCH, parameters);
                     found = true;
-                    break;
                 }
             }
             if (!found) {
@@ -171,10 +183,17 @@ public class MMFF94 implements ForceField {
             atomicNum2 = iAtom.getAtomicNumber();
         }
         MMFF94Parameters.StretchEmpiricalParameters mmffBndkParams = null;
-        for (MMFF94Parameters.StretchEmpiricalParameters parameters : mmffParameters.bondStretchEmpiricalParameterses) {
+        int index = Collections.binarySearch(mmffParameters.bondStretchEmpiricalParameterses, new MMFF94Parameters.StretchEmpiricalParameters(atomicNum1, atomicNum2, 0, 0), (MMFF94Parameters.StretchEmpiricalParameters p1, MMFF94Parameters.StretchEmpiricalParameters p2) -> {
+            if (p1.i != p2.i) {
+                return Integer.compare(p1.i, p2.i);
+            } else {
+                return Integer.compare(p1.j, p2.j);
+            }
+        });
+        if (index >= 0) {
+            MMFF94Parameters.StretchEmpiricalParameters parameters = mmffParameters.bondStretchEmpiricalParameterses.get(index);
             if (parameters.i == atomicNum1 && parameters.j == atomicNum2) {
                 mmffBndkParams = parameters;
-                break;
             }
         }
         Float[][] radiiElectronegativityParameters = new Float[2][3];
@@ -197,36 +216,42 @@ public class MMFF94 implements ForceField {
         }
         double c = (((atomicNum1 == 1) || (atomicNum2 == 1)) ? 0.050 : 0.085);
         double n = 1.4;
-        double delta = 0.0;
-        float[] r0_i = new float[2];
+        float[] r0_i = {radiiElectronegativityParameters[0][1], radiiElectronegativityParameters[1][1]};
 
-        for (int i = 0; i < 2; i++) {
-            r0_i[i] = radiiElectronegativityParameters[i][1];
-        }
-        float r0 = (float) (r0_i[0] + r0_i[1] - c * Math.pow(Math.abs(radiiElectronegativityParameters[0][2] - radiiElectronegativityParameters[1][2]), n) - delta);
+        float r0 = (float) (r0_i[0] + r0_i[1] - c * Math.pow(Math.abs(radiiElectronegativityParameters[0][2] - radiiElectronegativityParameters[1][2]), n));
         float kb;
         if (mmffBndkParams != null) {
             kb = (float) (mmffBndkParams.kb * Math.pow(mmffBndkParams.r0 / r0, 6));
         } else {
-            int row1 = getHerschbachLauriePeriodicTableRow(iAtom);
-            int row2 = getHerschbachLauriePeriodicTableRow(jAtom);
-            if (row1 > row2) {
-                int temp = row2;
-                row2 = row1;
-                row1 = temp;
-            }
-            Float[] HerschbachLaurieParameters = null;
-            for (Float[] parameters : mmffParameters.herschbachLaurie) {
-                if (row1 == parameters[0] && row2 == parameters[1]) {
-                    HerschbachLaurieParameters = parameters;
-                    break;
-                }
-            }
-            Objects.requireNonNull(HerschbachLaurieParameters, String.format("could not find Herschbach-Laurie parameters for %s-%s bond", iAtom.getAtomTypeName(), jAtom.getAtomTypeName()));
+            Float[] HerschbachLaurieParameters = findHerschbachLaurieParameters(iAtom, jAtom);
             kb = (float) Math.pow(10.0, -(r0 - HerschbachLaurieParameters[2]) / HerschbachLaurieParameters[3]);
         }
 
         return new MMFF94Parameters.StretchParameters(findBondType(iAtom, jAtom), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kb, r0);
+    }
+
+    private Float[] findHerschbachLaurieParameters(IAtom iAtom, IAtom jAtom) {
+        int row1 = getHerschbachLauriePeriodicTableRow(iAtom);
+        int row2 = getHerschbachLauriePeriodicTableRow(jAtom);
+        if (row1 > row2) {
+            int temp = row2;
+            row2 = row1;
+            row1 = temp;
+        }
+        int index = Collections.binarySearch(mmffParameters.herschbachLaurie, new Float[]{(float)row1, (float)row2}, (Float[] p1, Float[] p2) -> {
+            if (!p1[0].equals(p2[0])) {
+                return Integer.compare(p1[0].intValue(), p2[0].intValue());
+            } else {
+                return Integer.compare(p1[1].intValue(), p2[1].intValue());
+            }
+        });
+        if(index >=0){
+            Float[] parameters = mmffParameters.herschbachLaurie.get(index);
+            if (row1 == parameters[0] && row2 == parameters[1]) {
+                return parameters;
+            }
+        }
+        throw new NullPointerException(String.format("could not find Herschbach-Laurie parameters for %s-%s bond", iAtom.getAtomTypeName(), jAtom.getAtomTypeName()));
     }
 
     private void checkParametersAssigned(IAtom iAtom) {

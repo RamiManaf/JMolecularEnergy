@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,34 +104,34 @@ class MMFF94Parameters {
         {35f, 1.15f, 2.74f},
         {53f, 1.33f, 2.21f}};
 
-    final Float[][] herschbachLaurie = new Float[][]{
+    final List<Float[]> herschbachLaurie = Arrays.<Float[]>asList(
         //    Parameters for Badger's Rule
         //    i j a_ij d_ij dp_ij
-        {0f, 0f, 1.26f, 0.025f, 0.025f},
-        {0f, 1f, 1.66f, 0.30f, 0.36f},
-        {0f, 2f, 1.84f, 0.38f, 0.58f},
-        {0f, 3f, 1.98f, 0.49f, 0.65f},
-        {0f, 4f, 2.03f, 0.51f, 0.80f},
-        {0f, 5f, 2.03f, 0.25f, 0.81f},
-        {0f, 30f, 1.85f, 0.15f, 0.53f},
-        {0f, 40f, 1.84f, 0.61f, 0.61f},
-        {0f, 50f, 1.78f, 0.97f, 0.62f},
-        {1f, 1f, 1.91f, 0.68f, 0.68f},
-        {1f, 2f, 2.28f, 0.74f, 0.92f},
-        {1f, 3f, 2.35f, 0.85f, 1.02f},
-        {1f, 4f, 2.33f, 0.68f, 1.12f},
-        {1f, 5f, 2.50f, 0.97f, 1.22f},
-        {1f, 30f, 2.08f, 1.14f, 0.97f},
-        {1f, 40f, 2.34f, 1.17f, 1.08f},
-        {2f, 2f, 2.41f, 1.18f, 1.18f},
-        {2f, 3f, 2.52f, 1.02f, 1.28f},
-        {2f, 4f, 2.61f, 1.28f, 1.40f},
-        {2f, 5f, 2.60f, 0.84f, 1.24f},
-        {3f, 3f, 2.58f, 1.41f, 1.35f},
-        {3f, 4f, 2.66f, 0.86f, 1.48f},
-        {3f, 5f, 2.75f, 1.14f, 1.55f},
-        {4f, 4f, 2.85f, 1.62f, 1.62f},
-        {4f, 5f, 2.76f, 1.25f, 1.51f}};
+        new Float[]{0f, 0f, 1.26f, 0.025f, 0.025f},
+        new Float[]{0f, 1f, 1.66f, 0.30f, 0.36f},
+        new Float[]{0f, 2f, 1.84f, 0.38f, 0.58f},
+        new Float[]{0f, 3f, 1.98f, 0.49f, 0.65f},
+        new Float[]{0f, 4f, 2.03f, 0.51f, 0.80f},
+        new Float[]{0f, 5f, 2.03f, 0.25f, 0.81f},
+        new Float[]{0f, 30f, 1.85f, 0.15f, 0.53f},
+        new Float[]{0f, 40f, 1.84f, 0.61f, 0.61f},
+        new Float[]{0f, 50f, 1.78f, 0.97f, 0.62f},
+        new Float[]{1f, 1f, 1.91f, 0.68f, 0.68f},
+        new Float[]{1f, 2f, 2.28f, 0.74f, 0.92f},
+        new Float[]{1f, 3f, 2.35f, 0.85f, 1.02f},
+        new Float[]{1f, 4f, 2.33f, 0.68f, 1.12f},
+        new Float[]{1f, 5f, 2.50f, 0.97f, 1.22f},
+        new Float[]{1f, 30f, 2.08f, 1.14f, 0.97f},
+        new Float[]{1f, 40f, 2.34f, 1.17f, 1.08f},
+        new Float[]{2f, 2f, 2.41f, 1.18f, 1.18f},
+        new Float[]{2f, 3f, 2.52f, 1.02f, 1.28f},
+        new Float[]{2f, 4f, 2.61f, 1.28f, 1.40f},
+        new Float[]{2f, 5f, 2.60f, 0.84f, 1.24f},
+        new Float[]{3f, 3f, 2.58f, 1.41f, 1.35f},
+        new Float[]{3f, 4f, 2.66f, 0.86f, 1.48f},
+        new Float[]{3f, 5f, 2.75f, 1.14f, 1.55f},
+        new Float[]{4f, 4f, 2.85f, 1.62f, 1.62f},
+        new Float[]{4f, 5f, 2.76f, 1.25f, 1.51f});
 
     private static MMFF94Parameters INSTANCE;
 
