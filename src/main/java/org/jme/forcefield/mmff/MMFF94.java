@@ -34,10 +34,11 @@ import org.jme.forcefield.mmff.MMFF94Parameters.VdwParameters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import org.jme.forcefield.GeometryUtils;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.exception.CDKException;
@@ -297,7 +298,7 @@ public class MMFF94 implements ForceField {
         for (IAtom atom : atomContainer.atoms()) {
             //non bonded interaction
             for (IAtom atom2 : atomContainer.atoms()) {
-                if (atom != atom2 && atom.getIndex() < atom2.getIndex() && isSeparatedByNOrMoreBonds(atom, atom2, 3)) {
+                if (atom != atom2 && atom.getIndex() < atom2.getIndex() && isSeparatedByNBonds(atom, atom2, 3, true)) {
                     double x = calculateVdwEnergy(atom, atom2);
                     energy += x;
                     totalVdw += x;
@@ -468,7 +469,7 @@ public class MMFF94 implements ForceField {
         double qI = iAtom.getCharge();
         double qJ = jAtom.getCharge();
         double electrostaticEnergy = 332.0716 * qI * qJ / (dielectricConstant * (iAtom.getPoint3d().distance(jAtom.getPoint3d()) + 0.05));
-        if (iAtom.getContainer() == jAtom.getContainer() && isSeparatedByNBonds(iAtom, jAtom, 3)) {
+        if (iAtom.getContainer() == jAtom.getContainer() && isSeparatedByNBonds(iAtom, jAtom, 3, false)) {
             return electrostaticEnergy * 0.75;
         } else {
             return electrostaticEnergy;
@@ -1299,35 +1300,38 @@ public class MMFF94 implements ForceField {
         throw new UnsupportedOperationException(String.format("heavy atoms (%s) are not supported", atom.getAtomTypeName()));
     }
 
-    private boolean isSeparatedByNOrMoreBonds(IAtom atom1, IAtom atom2, int n) {
-        HashSet<IAtom> searched = new HashSet();
-        HashSet<IAtom> lastDepth = new HashSet();
-        lastDepth.add(atom1);
-        for (int depth = 1; depth < n; depth++) {
-            searched.addAll(lastDepth);
-            HashSet<IAtom> lastDepthClone = (HashSet<IAtom>) lastDepth.clone();
-            for (IAtom atom : lastDepthClone) {
-                lastDepth.addAll(atom1.getContainer().getConnectedAtomsList(atom));
+    private boolean isSeparatedByNBonds(IAtom atom1, IAtom atom2, int n, boolean orMoreBonds) {
+        if (n <= 0) {
+            return atom1 != atom2;
             }
-            lastDepth.removeAll(searched);
+
+        HashSet<IAtom> searched = new HashSet<>();
+        Queue<IAtom> queue = new LinkedList<>();
+        queue.add(atom1);
+        searched.add(atom1);
+
+        int depth = 0;
+
+        while (!queue.isEmpty() && depth < n) {
+            int levelSize = queue.size();
+            depth++;
+
+            for (int i = 0; i < levelSize; i++) {
+                IAtom currentAtom = queue.poll();
+                List<IAtom> connectedAtoms = currentAtom.getContainer().getConnectedAtomsList(currentAtom);
+
+                for (IAtom neighbor : connectedAtoms) {
+                    if (neighbor.equals(atom2)) {
+                        return orMoreBonds ? (depth >= n) : depth == n;
         }
-        searched.addAll(lastDepth);
-        return !searched.contains(atom2);
+                    if (searched.add(neighbor)) {
+                        queue.add(neighbor);
+    }
+            }
+        }
     }
 
-    private boolean isSeparatedByNBonds(IAtom atom1, IAtom atom2, int n) {
-        HashSet<IAtom> searched = new HashSet();
-        HashSet<IAtom> lastDepth = new HashSet();
-        lastDepth.add(atom1);
-        for (int depth = 1; depth <= n; depth++) {
-            searched.addAll(lastDepth);
-            HashSet<IAtom> lastDepthClone = (HashSet<IAtom>) lastDepth.clone();
-            for (IAtom atom : lastDepthClone) {
-                lastDepth.addAll(atom1.getContainer().getConnectedAtomsList(atom));
-            }
-            lastDepth.removeAll(searched);
-        }
-        return lastDepth.contains(atom2);
+        return orMoreBonds; // If we exit the loop, atom2 was not found within n bonds.
     }
 
     private static int binarySearch(List<Float[]> array, int keyIndex, float key) {
