@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2023 Rami Manaf Abdullah.
+ * Copyright 2024 Rami Manaf Abdullah.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,14 @@
  */
 package org.jme.forcefield;
 
-import java.util.List;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * A general interface for defining a force field
+ *
  * @author Rami Manaf Abdullah
  */
-public interface ForceField {
+public interface EnergyComponent {
     
-    /**
-     * calculates potential energy for an atom container
-     * @param atomContainer
-     * @return 
-     */
     public double calculateEnergy(IAtomContainer atomContainer);
-    
-    public List<EnergyComponent> getEnergyComponents();
     
 }

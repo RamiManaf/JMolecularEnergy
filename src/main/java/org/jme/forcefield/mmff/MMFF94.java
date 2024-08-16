@@ -30,16 +30,16 @@ import java.util.logging.Logger;
 import org.openscience.cdk.forcefield.mmff.Mmff;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.jme.forcefield.mmff.MMFF94Parameters.VdwParameters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
-import org.jme.forcefield.GeometryUtils;
+import org.jme.forcefield.EnergyComponent;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IBond;
@@ -62,11 +62,25 @@ public class MMFF94 implements ForceField {
     static final String MMFF94_PARAMETER_STRETCH = "mmff.parameters.stretch";
     static final String MMFF94_PARAMETER_GEOMETRIC_PROPERTIES = "mmff.parameters.gemetricProperties";
     static final String MMFF94_FORMAL_CHARGE = "mmff.formalCharge";
-    static final Logger LOGGER = Logger.getLogger(MMFF94.class.getName());
+    static final String MMFF94_NON_BONDED_INTERACTION = "mmff.nonBondedInteraction";
+    static final String MMFF94_VDW_INTERACTION = "mmff.vdwInteraction";
+    static final String MMFF94_ANGLE_BENDING = "mmff.angleBending";
+    static final String MMFF94_STRETCH_BEND = "mmff.stretchBend";
+    static final String MMFF94_OUT_OF_PLANE = "mmff.outOfPlane";
+    static final String MMFF94_TORSION = "mmff.torsion";
+    private static final Logger LOGGER = Logger.getLogger(MMFF94.class.getName());
+
     private final Mmff mmff = new Mmff();
     private MMFF94Parameters mmffParameters;
     private boolean mmff94s;
-    private boolean debug = false;
+    private MMFF94BondStretchingComponent bondStretchingComponent = new MMFF94BondStretchingComponent();
+    private MMFF94StretchBendComponent stretchBendComponent = new MMFF94StretchBendComponent();
+    private MMFF94AngleBendingComponent angleBendingComponent = new MMFF94AngleBendingComponent();
+    private MMFF94OutOfPlaneComponent outOfPlaneComponent = new MMFF94OutOfPlaneComponent();
+    private MMFF94TorsionComponent torsionComponent = new MMFF94TorsionComponent();
+    private MMFF94VdwComponent vdwComponent = new MMFF94VdwComponent();
+    private MMFF94ElectrostaticComponent electrostaticComponent = new MMFF94ElectrostaticComponent();
+    private List<EnergyComponent> energyComponents;
 
     /**
      * initialize MMFF94 and load its parameters
@@ -81,19 +95,12 @@ public class MMFF94 implements ForceField {
             LOGGER.log(Level.SEVERE, "Could not load MMFF94 parameter files", ex);
             throw new RuntimeException(ex);
         }
+        energyComponents = new ArrayList<>(Arrays.asList(bondStretchingComponent, stretchBendComponent, angleBendingComponent, outOfPlaneComponent, torsionComponent, vdwComponent, electrostaticComponent));
     }
 
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
-
-    /**
-     * returns if debug mode is on
-     *
-     * @return
-     */
-    public boolean isDebug() {
-        return debug;
+    @Override
+    public List<EnergyComponent> getEnergyComponents() {
+        return Collections.unmodifiableList(energyComponents);
     }
 
     /**
@@ -133,11 +140,75 @@ public class MMFF94 implements ForceField {
 
         calculateFormalCharge(atomContainer);
         calculatePartialCharge(atomContainer);
-        if (debug) {
+        if (LOGGER.isLoggable(Level.FINE)) {
             for (IAtom atom : atomContainer.atoms()) {
-                System.out.println(atom.getAtomTypeName() + ":\t" + atom.getCharge());
+                LOGGER.fine(atom.getAtomTypeName() + ":\t" + atom.getCharge());
             }
         }
+        assignBondParameters(atomContainer);
+
+        HashMap<List<IAtom>, Boolean> nonBondedInteraction = new HashMap<>();
+        HashMap<List<IAtom>, Float[]> angleBending = new HashMap<>();
+        HashMap<List<IAtom>, Float[]> stretchBend = new HashMap<>();
+        HashMap<List<IAtom>, Float[]> outOfPlane = new HashMap<>();
+        HashMap<List<IAtom>, Float[]> torsion = new HashMap<>();
+        for (IAtom atom : atomContainer.atoms()) {
+            int atomType = atom.getProperty(MMFF94_TYPE);
+            atom.setProperty(MMFF94_VDW_INTERACTION, mmffParameters.vdwParameters.get(atomType - (atomType >= 87 ? 5 : 1)));
+            //non bonded interaction
+            for (IAtom atom2 : atomContainer.atoms()) {
+                if (atom != atom2 && atom.getIndex() < atom2.getIndex() && isSeparatedByNBonds(atom, atom2, 3, true)) {
+                    nonBondedInteraction.put(Arrays.asList(atom, atom2), isSeparatedByNBonds(atom, atom2, 3, false));
+                }
+            }
+            //bonded interaction
+            if (atom.getBondCount() >= 2) {
+                for (IAtom atom2 : atomContainer.getConnectedAtomsList(atom)) {
+                    for (IAtom atom3 : atomContainer.getConnectedAtomsList(atom)) {
+                        if (atom3 == atom2) {
+                            continue;
+                        }
+                        int j = atomType;
+                        int i = atom2.getProperty(MMFF94_TYPE);
+                        int k = atom3.getProperty(MMFF94_TYPE);
+                        if (i < k || (i == k && atom2.getIndex() < atom3.getIndex())) {
+                            angleBending.put(Arrays.asList(atom2, atom, atom3), findAngleBendingParameters(atom2, atom, atom3));
+                            stretchBend.put(Arrays.asList(atom2, atom, atom3), findStretchBendParameters(atom2, atom, atom3));
+                        }
+                        if (atom.getBondCount() >= 3) {
+                            for (IAtom atom4 : atomContainer.getConnectedAtomsList(atom)) {
+                                if (atom4 == atom2 || atom4 == atom3) {
+                                    continue;
+                                }
+                                if (i < k || (k == i && atom2.getIndex() < atom3.getIndex())) {
+                                    outOfPlane.put(Arrays.asList(atom2, atom, atom3, atom4), findOutOfPlaneParameters(atom2, atom, atom3, atom4));
+                                }
+                            }
+                        }
+                        //torsion
+                        if (!atom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear && !atom3.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear && atom3.getBondCount() >= 2) {
+                            for (IAtom atom4 : atomContainer.getConnectedAtomsList(atom3)) {
+                                if (atom4 == atom || atom4 == atom2) {
+                                    continue;
+                                }
+                                int l = atom4.getProperty(MMFF94_TYPE);
+                                if (j < k || (j == k && i < l) || (j == k && i == l && atom.getIndex() < atom3.getIndex())) {
+                                    torsion.put(Arrays.asList(atom2, atom, atom3, atom4), findTorsionParameters(atom2, atom, atom3, atom4));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        atomContainer.setProperty(MMFF94_NON_BONDED_INTERACTION, nonBondedInteraction);
+        atomContainer.setProperty(MMFF94_ANGLE_BENDING, angleBending);
+        atomContainer.setProperty(MMFF94_STRETCH_BEND, stretchBend);
+        atomContainer.setProperty(MMFF94_OUT_OF_PLANE, outOfPlane);
+        atomContainer.setProperty(MMFF94_TORSION, torsion);
+    }
+
+    private void assignBondParameters(IAtomContainer atomContainer) {
         for (IBond bond : atomContainer.bonds()) {
             IAtom iAtom, jAtom;
             if (bond.getBegin().<Integer>getProperty(MMFF94_TYPE) <= bond.getEnd().<Integer>getProperty(MMFF94_TYPE)) {
@@ -151,7 +222,6 @@ public class MMFF94 implements ForceField {
             int j = jAtom.getProperty(MMFF94_TYPE);
             int bondType = findBondType(iAtom, jAtom);
             boolean found = false;
-            long t1 = System.nanoTime();
             int index = Collections.binarySearch(mmffParameters.bondStretchParameters, new MMFF94Parameters.StretchParameters(bondType, i, j, 0, 0), (MMFF94Parameters.StretchParameters p1, MMFF94Parameters.StretchParameters p2) -> {
                 if (p1.i != p2.i) {
                     return Integer.compare(p1.i, p2.i);
@@ -171,6 +241,38 @@ public class MMFF94 implements ForceField {
             if (!found) {
                 bond.setProperty(MMFF94_PARAMETER_STRETCH, calculateEmpiricalStretchParameters(iAtom, jAtom));
             }
+        }
+    }
+
+    private Float[] findOutOfPlaneParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom) {
+        int[] ikl = new int[3];
+        ikl[0] = iAtom.getProperty(MMFF94_TYPE);
+        int j = jAtom.getProperty(MMFF94_TYPE);
+        ikl[1] = kAtom.getProperty(MMFF94_TYPE);
+        ikl[2] = lAtom.getProperty(MMFF94_TYPE);
+        int equivalentIndex = 0;
+        List<Float[]> outOfPlaneParameters = mmff94s ? mmffParameters.outOfPlaneParametersStatic : mmffParameters.outOfPlaneParameters;
+        while (true) {
+            Arrays.sort(ikl);
+            int index = binarySearch(outOfPlaneParameters, 1, j);
+            if (index != -1) {
+                for (int z = index; z < outOfPlaneParameters.size(); z++) {
+                    Float[] parameters = outOfPlaneParameters.get(z);
+                    if (parameters[1] == j) {
+                        if (((ikl[0] == parameters[0] && ikl[1] == parameters[2] && ikl[2] == parameters[3]))) {
+                            return parameters;
+                        }
+                    }
+                }
+            }
+            if (equivalentIndex > 3) {
+                //no parameters where found. We can omit oop
+                return null;
+            }
+            ikl[0] = findAtomTypeEquivalence(iAtom.getProperty(MMFF94_TYPE), equivalentIndex);
+            ikl[1] = findAtomTypeEquivalence(kAtom.getProperty(MMFF94_TYPE), equivalentIndex);
+            ikl[2] = findAtomTypeEquivalence(lAtom.getProperty(MMFF94_TYPE), equivalentIndex);
+            equivalentIndex++;
         }
     }
 
@@ -239,14 +341,14 @@ public class MMFF94 implements ForceField {
             row2 = row1;
             row1 = temp;
         }
-        int index = Collections.binarySearch(mmffParameters.herschbachLaurie, new Float[]{(float)row1, (float)row2}, (Float[] p1, Float[] p2) -> {
+        int index = Collections.binarySearch(mmffParameters.herschbachLaurie, new Float[]{(float) row1, (float) row2}, (Float[] p1, Float[] p2) -> {
             if (!p1[0].equals(p2[0])) {
                 return Integer.compare(p1[0].intValue(), p2[0].intValue());
             } else {
                 return Integer.compare(p1[1].intValue(), p2[1].intValue());
             }
         });
-        if(index >=0){
+        if (index >= 0) {
             Float[] parameters = mmffParameters.herschbachLaurie.get(index);
             if (row1 == parameters[0] && row2 == parameters[1]) {
                 return parameters;
@@ -255,9 +357,9 @@ public class MMFF94 implements ForceField {
         throw new NullPointerException(String.format("could not find Herschbach-Laurie parameters for %s-%s bond", iAtom.getAtomTypeName(), jAtom.getAtomTypeName()));
     }
 
-    private void checkParametersAssigned(IAtom iAtom) {
+    static void checkParametersAssigned(IAtom iAtom) {
         if (iAtom.getProperty(MMFF94_TYPE) == null) {
-            throw new RuntimeException("parameters need to be assigned first");
+            throw new RuntimeException("MMFF94 parameters need to be assigned first");
         }
     }
 
@@ -273,207 +375,15 @@ public class MMFF94 implements ForceField {
         if (!atomContainer.isEmpty()) {
             checkParametersAssigned(atomContainer.getAtom(0));
         }
-        ArrayList<String>[] arr = new ArrayList[7];
-        if (debug) {
-            for (int i = 0; i < 7; i++) {
-                arr[i] = new ArrayList<>();
-            }
-        }
         double energy = 0;
-        double totalStretch = 0;
-        double totalVdw = 0;
-        double totalElectrostatic = 0;
-        double totalAngleBend = 0;
-        double totalStretchBend = 0;
-        double totalOOP = 0;
-        double totalTorsion = 0;
-        for (IBond bond : atomContainer.bonds()) {
-            double x = calculateBondStretchingEnergy(bond);
-            energy += x;
-            totalStretch += x;
-            if (debug) {
-                arr[0].add(String.format("Stretch:\t%s-%s\t%f", bond.getBegin().getAtomTypeName(), bond.getEnd().getAtomTypeName(), x));
-            }
-        }
-        for (IAtom atom : atomContainer.atoms()) {
-            //non bonded interaction
-            for (IAtom atom2 : atomContainer.atoms()) {
-                if (atom != atom2 && atom.getIndex() < atom2.getIndex() && isSeparatedByNBonds(atom, atom2, 3, true)) {
-                    double x = calculateVdwEnergy(atom, atom2);
-                    energy += x;
-                    totalVdw += x;
-                    if (debug) {
-                        arr[5].add(String.format("VDW:\t%s-%s\t%f", atom.getAtomTypeName(), atom2.getAtomTypeName(), x));
-                    }
-                    double y = calculateElectrostaticInteractionEnergy(atom, atom2, 1);
-                    energy += y;
-                    totalElectrostatic += y;
-                    if (debug) {
-                        arr[6].add(String.format("Electro:\t%s-%s\t%f", atom.getAtomTypeName(), atom2.getAtomTypeName(), y));
-                    }
-                }
-            }
-            //bonded interaction
-            if (atom.getBondCount() >= 2) {
-                for (IAtom atom2 : atomContainer.getConnectedAtomsList(atom)) {
-                    for (IAtom atom3 : atomContainer.getConnectedAtomsList(atom)) {
-                        if (atom3 == atom2) {
-                            continue;
-                        }
-                        int j = atom.getProperty(MMFF94_TYPE);
-                        int i = atom2.getProperty(MMFF94_TYPE);
-                        int k = atom3.getProperty(MMFF94_TYPE);
-                        if (i < k || (i == k && atom2.getIndex() < atom3.getIndex())) {
-                            double x = calculateAngleBendingEnergy(atom2, atom, atom3);
-                            energy += x;
-                            totalAngleBend += x;
-                            if (debug) {
-                                arr[1].add(String.format("Bending:\t%d-%d-%d\t%.3f", atom2.getProperty(MMFF94_TYPE), atom.getProperty(MMFF94_TYPE), atom3.getProperty(MMFF94_TYPE), x));
-                            }
-                            double y = calculateStretchBendEnergy(atom2, atom, atom3);
-                            energy += y;
-                            totalStretchBend += y;
-                            if (debug) {
-                                arr[2].add(String.format("Str-Bnd:\t%d-%d-%d\t%.3f", atom2.getProperty(MMFF94_TYPE), atom.getProperty(MMFF94_TYPE), atom3.getProperty(MMFF94_TYPE), y));
-                            }
-                        }
-                        if (atom.getBondCount() >= 3) {
-                            for (IAtom atom4 : atomContainer.getConnectedAtomsList(atom)) {
-                                if (atom4 == atom2 || atom4 == atom3) {
-                                    continue;
-                                }
-                                if (i < k || (k == i && atom2.getIndex() < atom3.getIndex())) {
-                                    double z = calculateOutOfPlaneEnergy(atom2, atom, atom3, atom4);
-                                    energy += z;
-                                    totalOOP += z;
-                                    if (debug) {
-                                        arr[3].add(String.format("OOP:\t%d-%d-%d-%d\t%.3f", atom2.getProperty(MMFF94_TYPE), atom.getProperty(MMFF94_TYPE), atom3.getProperty(MMFF94_TYPE), atom4.getProperty(MMFF94_TYPE), z));
-                                    }
-                                }
-                            }
-                        }
-                        //torsion
-                        if (!atom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear && !atom3.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear && atom3.getBondCount() >= 2) {
-                            for (IAtom atom4 : atomContainer.getConnectedAtomsList(atom3)) {
-                                if (atom4 == atom || atom4 == atom2) {
-                                    continue;
-                                }
-                                int l = atom4.getProperty(MMFF94_TYPE);
-                                //prevent torsion energy from calculating twice by forcing torsion paramter file order
-                                if (j < k || (j == k && i < l) || (j == k && i == l && atom.getIndex() < atom3.getIndex())) {
-                                    double x = calculateTorsionEnergy(atom2, atom, atom3, atom4);
-                                    energy += x;
-                                    totalTorsion += x;
-                                    if (debug) {
-                                        arr[4].add(String.format("Tor:\t%d-%d-%d-%d\t%f", atom2.getProperty(MMFF94_TYPE), atom.getProperty(MMFF94_TYPE), atom3.getProperty(MMFF94_TYPE), atom4.getProperty(MMFF94_TYPE), x));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (debug) {
-            arr[0].add("total stretch:\t" + totalStretch);
-            arr[1].add("total angle bend:\t" + totalAngleBend);
-            arr[2].add("total str-bend:\t" + totalStretchBend);
-            arr[3].add("total OOP:\t" + totalOOP);
-            arr[4].add("total torsion:\t" + totalTorsion);
-            arr[5].add("total Vdw:\t" + totalVdw);
-            arr[6].add("total Electro:\t" + totalElectrostatic);
-            for (ArrayList<String> arrayList : arr) {
-                arrayList.forEach(System.out::println);
-            }
-        }
+        energy += bondStretchingComponent.calculateEnergy(atomContainer);
+        energy += angleBendingComponent.calculateEnergy(atomContainer);
+        energy += stretchBendComponent.calculateEnergy(atomContainer);
+        energy += outOfPlaneComponent.calculateEnergy(atomContainer);
+        energy += torsionComponent.calculateEnergy(atomContainer);
+        energy += vdwComponent.calculateEnergy(atomContainer);
+        energy += electrostaticComponent.calculateEnergy(atomContainer);
         return energy;
-    }
-
-    /**
-     * calculate the bond stretching energy in the provided bond
-     *
-     * @param bond
-     * @return
-     */
-    public double calculateBondStretchingEnergy(IBond bond) {
-        IAtom iAtom = bond.getBegin();
-        checkParametersAssigned(iAtom);
-        IAtom jAtom = bond.getEnd();
-        MMFF94Parameters.StretchParameters parameters = bond.getProperty(MMFF94_PARAMETER_STRETCH);
-        double deltaR = iAtom.getPoint3d().distance(jAtom.getPoint3d()) - parameters.r0;
-        return .5 * 143.9325 * parameters.kb * deltaR * deltaR * (1 - 2 * deltaR + (7d / 12d) * 4 * deltaR * deltaR);
-    }
-
-    /**
-     * calculate Van Der Waals energy between two atoms. Generally
-     * intermolecular interactions are calculated between non-bonded atoms or
-     * atoms separated by three bonds (two atoms at least)
-     *
-     * @param iAtom
-     * @param jAtom
-     * @return
-     */
-    public double calculateVdwEnergy(IAtom iAtom, IAtom jAtom) {
-        checkParametersAssigned(iAtom);
-        checkParametersAssigned(jAtom);
-        int i = iAtom.getProperty(MMFF94_TYPE);
-        int j = jAtom.getProperty(MMFF94_TYPE);
-        //there is a 4 number gap in mmff atom type number (83-86)
-        VdwParameters iParameters = mmffParameters.vdwParameters.get(i - (i >= 87 ? 5 : 1));
-        VdwParameters jParameters = mmffParameters.vdwParameters.get(j - (j >= 87 ? 5 : 1));
-        double RStarIJ;
-        if (iAtom.getAtomTypeName().equals(jAtom.getAtomTypeName())) {
-            //like pairs
-            RStarIJ = iParameters.A * Math.pow(iParameters.alpha, 0.25d);
-        } else {
-            //unlike pairs
-            double RStarII = iParameters.A * Math.pow(iParameters.alpha, 0.25d);
-            double RStarJJ = jParameters.A * Math.pow(jParameters.alpha, 0.25d);
-
-            double B = (iParameters.DA == VdwParameters.DONER || jParameters.DA == VdwParameters.DONER) ? 0 : 0.2;
-            double beta = 12;
-            double gamma = (RStarII - RStarJJ) / (RStarII + RStarJJ);
-            RStarIJ = 0.5 * (RStarII + RStarJJ) * (1 + B * (1 - Math.exp(-beta * Math.pow(gamma, 2))));
-        }
-
-        double epsilonIJ = 181.16 * iParameters.G * jParameters.G * iParameters.alpha * jParameters.alpha;
-        epsilonIJ /= (Math.sqrt(iParameters.alpha / iParameters.N) + Math.sqrt(jParameters.alpha / jParameters.N));
-        epsilonIJ /= Math.pow(RStarIJ, 6);
-
-        if (iParameters.DA + jParameters.DA == 3) {
-            //one is doner and the other is acceptor
-            //we must calculate epsilon with the unscaled RStarIJ
-            RStarIJ *= 0.8;
-            epsilonIJ *= 0.5;
-        }
-        double distance = iAtom.getPoint3d().distance(jAtom.getPoint3d());
-        double vdwEnergy = epsilonIJ * Math.pow((1.07 * RStarIJ) / (distance + 0.07 * RStarIJ), 7);
-        vdwEnergy = vdwEnergy * (((1.12 * Math.pow(RStarIJ, 7)) / (Math.pow(distance, 7) + 0.12 * Math.pow(RStarIJ, 7))) - 2);
-        return vdwEnergy;
-    }
-
-    /**
-     * calculates electrostatic interaction energy between the two atoms.
-     * Generally intermolecular interactions are calculated between non-bonded
-     * atoms or atoms separated by three bonds (two atoms at least)
-     *
-     * @param iAtom
-     * @param jAtom
-     * @param dielectricConstant dielectric constant of the solvent. Default
-     * value is 1
-     * @return
-     */
-    public double calculateElectrostaticInteractionEnergy(IAtom iAtom, IAtom jAtom, double dielectricConstant) {
-        checkParametersAssigned(iAtom);
-        checkParametersAssigned(jAtom);
-        double qI = iAtom.getCharge();
-        double qJ = jAtom.getCharge();
-        double electrostaticEnergy = 332.0716 * qI * qJ / (dielectricConstant * (iAtom.getPoint3d().distance(jAtom.getPoint3d()) + 0.05));
-        if (iAtom.getContainer() == jAtom.getContainer() && isSeparatedByNBonds(iAtom, jAtom, 3, false)) {
-            return electrostaticEnergy * 0.75;
-        } else {
-            return electrostaticEnergy;
-        }
     }
 
     /**
@@ -695,134 +605,6 @@ public class MMFF94 implements ForceField {
             qI += (1 - iAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).crd * parameters[2]) * q0 + qKSum * parameters[2];
             iAtom.setCharge((double) qI);
         }
-    }
-
-    /**
-     * calculates the angle bending energy for the angle that is formed from the
-     * three atoms.
-     *
-     * @param iAtom the atom at one side
-     * @param jAtom the atom in the middle
-     * @param kAtom the atom at the other side
-     * @return energy
-     */
-    public double calculateAngleBendingEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
-        if (iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom) == null) {
-            throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k");
-        }
-        checkParametersAssigned(iAtom);
-        Float[] parameters = findAngleBendingParameters(iAtom, jAtom, kAtom);
-        double angle = GeometryUtils.calculateAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) * 180 / Math.PI;
-        double deltaAngle = angle - parameters[5];
-        if (jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear) {
-            return 143.9325 * parameters[4] * (1 + Math.cos(Math.toRadians(angle)));
-        } else {
-            return Math.toRadians(Math.toRadians(143.9325)) * parameters[4] * .5 * deltaAngle * deltaAngle * (1 - 0.006981317 * deltaAngle);
-        }
-    }
-
-    /**
-     * calculates stretch bend energy that couples i-j and j-k bonds stretching
-     * to the angle formed by i-j-k. This energy favors bonds stretching when
-     * the angle decrease.
-     *
-     * @param iAtom first atom
-     * @param jAtom middle atom
-     * @param kAtom end atom
-     * @return
-     */
-    public double calculateStretchBendEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
-        if (iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom) == null) {
-            throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k");
-        }
-        checkParametersAssigned(iAtom);
-        if (jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear) {
-            return 0;
-        }
-        Float[] angleBendingParameter = findAngleBendingParameters(iAtom, jAtom, kAtom);
-        double deltaAngle = (GeometryUtils.calculateAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) * 180 / Math.PI) - angleBendingParameter[5];
-        MMFF94Parameters.StretchParameters ijStretch = iAtom.getContainer().getBond(iAtom, jAtom).<MMFF94Parameters.StretchParameters>getProperty(MMFF94_PARAMETER_STRETCH);
-        MMFF94Parameters.StretchParameters jkStretch = iAtom.getContainer().getBond(jAtom, kAtom).<MMFF94Parameters.StretchParameters>getProperty(MMFF94_PARAMETER_STRETCH);
-        double deltaRij = iAtom.getPoint3d().distance(jAtom.getPoint3d()) - ijStretch.r0;
-        double deltaRjk = jAtom.getPoint3d().distance(kAtom.getPoint3d()) - jkStretch.r0;
-        Float[] stretchBendParameter = findStretchBendParameters(iAtom, jAtom, kAtom);
-        return 2.51210 * (stretchBendParameter[4] * deltaRij + stretchBendParameter[5] * deltaRjk) * deltaAngle;
-    }
-
-    /**
-     * calculates out of plane energy for the atoms
-     *
-     * @param iAtom first atom forming the plane
-     * @param jAtom the middle atom forming the plane
-     * @param kAtom the last atom forming the plane
-     * @param lAtom out of the plane atom
-     * @return
-     */
-    public double calculateOutOfPlaneEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom) {
-        if (jAtom.getBond(iAtom) == null || jAtom.getBond(kAtom) == null && jAtom.getBond(lAtom) == null) {
-            throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k/l where l is bonded to j");
-        }
-        checkParametersAssigned(iAtom);
-        int[] ikl = new int[3];
-        ikl[0] = iAtom.getProperty(MMFF94_TYPE);
-        int j = jAtom.getProperty(MMFF94_TYPE);
-        ikl[1] = kAtom.getProperty(MMFF94_TYPE);
-        ikl[2] = lAtom.getProperty(MMFF94_TYPE);
-        int equivalentIndex = 0;
-        List<Float[]> outOfPlaneParameters = mmff94s ? mmffParameters.outOfPlaneParametersStatic : mmffParameters.outOfPlaneParameters;
-        while (true) {
-            Arrays.sort(ikl);
-            int index = binarySearch(outOfPlaneParameters, 1, j);
-            if (index != -1) {
-                for (int z = index; z < outOfPlaneParameters.size(); z++) {
-                    Float[] parameters = outOfPlaneParameters.get(z);
-                    if (parameters[1] == j) {
-                        if (((ikl[0] == parameters[0] && ikl[1] == parameters[2] && ikl[2] == parameters[3]))) {
-                            double angle = GeometryUtils.calculateOutOfPlaneAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d(), lAtom.getPoint3d()) * 180 / Math.PI;
-                            return Math.toRadians(Math.toRadians(143.9325)) * .5 * parameters[4] * angle * angle;
-                        }
-                    }
-                }
-            }
-            if (equivalentIndex > 3) {
-                //no parameters where found. We can omit oop
-                return 0;
-            }
-            ikl[0] = findAtomTypeEquivalence(iAtom.getProperty(MMFF94_TYPE), equivalentIndex);
-            ikl[1] = findAtomTypeEquivalence(kAtom.getProperty(MMFF94_TYPE), equivalentIndex);
-            ikl[2] = findAtomTypeEquivalence(lAtom.getProperty(MMFF94_TYPE), equivalentIndex);
-            equivalentIndex++;
-        }
-    }
-
-    /**
-     * calculates the torsion energy for the torsion angle formed by i-j-k-l
-     * atoms
-     *
-     * @param iAtom
-     * @param jAtom
-     * @param kAtom
-     * @param lAtom
-     * @return
-     */
-    public double calculateTorsionEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom) {
-        if (iAtom.getBond(jAtom) == null || jAtom.getBond(kAtom) == null && kAtom.getBond(lAtom) == null) {
-            throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k-l");
-        }
-        checkParametersAssigned(iAtom);
-        if ((Integer) kAtom.getProperty(MMFF94_TYPE) < (Integer) jAtom.getProperty(MMFF94_TYPE)
-                || (jAtom.getProperty(MMFF94_TYPE).equals((Integer) kAtom.getProperty(MMFF94_TYPE)) && (Integer) iAtom.getProperty(MMFF94_TYPE) > (Integer) lAtom.getProperty(MMFF94_TYPE))) {
-            IAtom temp = jAtom;
-            jAtom = kAtom;
-            kAtom = temp;
-            temp = iAtom;
-            iAtom = lAtom;
-            lAtom = temp;
-        }
-
-        double torsionAngle = GeometryUtils.calculateTorsionAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d(), lAtom.getPoint3d());//in radians
-        Float[] parameters = findTorsionParameters(iAtom, jAtom, kAtom, lAtom);
-        return 0.5 * (parameters[5] * (1 + Math.cos(torsionAngle)) + parameters[6] * (1 - Math.cos(2 * torsionAngle)) + parameters[7] * (1 + Math.cos(3 * torsionAngle)));
     }
 
     /**
@@ -1094,9 +876,6 @@ public class MMFF94 implements ForceField {
             }
             if (equivalentIndex > 3) {
                 //no paramters available. we will use the empirical rule
-                if (debug) {
-                    System.out.println("Warning: Empirical Angle Bending");
-                }
                 return calculateEmpiricalAngleBendingParameters(iAtom, jAtom, kAtom, angleType, null);
             }
             i = findAtomTypeEquivalence(iAtom.getProperty(MMFF94_TYPE), equivalentIndex);
@@ -1300,10 +1079,10 @@ public class MMFF94 implements ForceField {
         throw new UnsupportedOperationException(String.format("heavy atoms (%s) are not supported", atom.getAtomTypeName()));
     }
 
-    private boolean isSeparatedByNBonds(IAtom atom1, IAtom atom2, int n, boolean orMoreBonds) {
+    static boolean isSeparatedByNBonds(IAtom atom1, IAtom atom2, int n, boolean orMoreBonds) {
         if (n <= 0) {
             return atom1 != atom2;
-            }
+        }
 
         HashSet<IAtom> searched = new HashSet<>();
         Queue<IAtom> queue = new LinkedList<>();
@@ -1323,13 +1102,13 @@ public class MMFF94 implements ForceField {
                 for (IAtom neighbor : connectedAtoms) {
                     if (neighbor.equals(atom2)) {
                         return orMoreBonds ? (depth >= n) : depth == n;
-        }
+                    }
                     if (searched.add(neighbor)) {
                         queue.add(neighbor);
-    }
+                    }
+                }
             }
         }
-    }
 
         return orMoreBonds; // If we exit the loop, atom2 was not found within n bonds.
     }
