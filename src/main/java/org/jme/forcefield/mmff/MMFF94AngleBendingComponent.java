@@ -56,14 +56,15 @@ public class MMFF94AngleBendingComponent implements EnergyComponent {
     public double calculateEnergy(IAtomContainer atomContainer) {
         Map<List<IAtom>, Float[]> angleBending = ((Map<List<IAtom>, Float[]>) atomContainer.getProperty(MMFF94.MMFF94_ANGLE_BENDING));
         Objects.requireNonNull(angleBending, "MMFF94 parameters need to be assigned first");
-        double totalEnergy = angleBending.entrySet().stream().mapToDouble((entry) -> {
+        double totalEnergy = 0;
+        for(Map.Entry<List<IAtom>, Float[]> entry : angleBending.entrySet()){
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), entry.getValue());
             if (LOGGER.isLoggable(Level.FINE)) {
                 LOGGER.fine(String.format("Bending:\t%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), energy));
             }
-            return energy;
-        }).sum();
+            totalEnergy+=energy;
+        }
         LOGGER.fine("total angle bend:\t" + totalEnergy);
         return totalEnergy;
     }

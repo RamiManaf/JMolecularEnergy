@@ -56,14 +56,15 @@ public class MMFF94OutOfPlaneComponent implements EnergyComponent {
     public double calculateEnergy(IAtomContainer atomContainer) {
         Map<List<IAtom>, Float[]> outOfPlane = ((Map<List<IAtom>, Float[]>) atomContainer.getProperty(MMFF94.MMFF94_OUT_OF_PLANE));
         Objects.requireNonNull(outOfPlane, "MMFF94 parameters need to be assigned first");
-        double totalEnergy = outOfPlane.entrySet().stream().mapToDouble((entry) -> {
+        double totalEnergy = 0;
+        for (Map.Entry<List<IAtom>, Float[]> entry : outOfPlane.entrySet()) {
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), atoms.get(3), entry.getValue());
             if (LOGGER.isLoggable(Level.FINE)) {
                 LOGGER.fine(String.format("OOP:\t%d-%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), atoms.get(3).getProperty(MMFF94_TYPE), energy));
             }
-            return energy;
-        }).sum();
+            totalEnergy += energy;
+        }
         LOGGER.fine("total OOP:\t" + totalEnergy);
         return totalEnergy;
     }

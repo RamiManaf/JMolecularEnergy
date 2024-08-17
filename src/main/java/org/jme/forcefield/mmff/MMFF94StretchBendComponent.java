@@ -58,14 +58,15 @@ public class MMFF94StretchBendComponent implements EnergyComponent {
         Map<List<IAtom>, Float[]> angleBending = ((Map<List<IAtom>, Float[]>) atomContainer.getProperty(MMFF94.MMFF94_ANGLE_BENDING));
         Map<List<IAtom>, Float[]> stretchBend = ((Map<List<IAtom>, Float[]>) atomContainer.getProperty(MMFF94.MMFF94_STRETCH_BEND));
         Objects.requireNonNull(stretchBend, "MMFF94 parameters need to be assigned first");
-        double totalEnergy = stretchBend.entrySet().stream().mapToDouble((entry) -> {
+        double totalEnergy = 0;
+        for (Map.Entry<List<IAtom>, Float[]> entry : stretchBend.entrySet()) {
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), angleBending.get(atoms), entry.getValue());
             if (LOGGER.isLoggable(Level.FINE)) {
                 LOGGER.fine(String.format("Stretch-Bend:\t%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), energy));
             }
-            return energy;
-        }).sum();
+            totalEnergy += energy;
+        };
         LOGGER.fine("total stretch-bend:\t" + totalEnergy);
         return totalEnergy;
     }

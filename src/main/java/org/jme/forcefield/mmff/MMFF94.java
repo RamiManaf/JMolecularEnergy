@@ -167,8 +167,10 @@ public class MMFF94 implements ForceField {
             }
             //bonded interaction
             if (atom.getBondCount() >= 2) {
-                for (IAtom atom2 : atomContainer.getConnectedAtomsList(atom)) {
-                    for (IAtom atom3 : atomContainer.getConnectedAtomsList(atom)) {
+                for (IBond bond2 : atom.bonds()) {
+                    IAtom atom2 = bond2.getOther(atom);
+                    for (IBond bond3 : atom.bonds()) {
+                        IAtom atom3 = bond3.getOther(atom);
                         if (atom3 == atom2) {
                             continue;
                         }
@@ -180,7 +182,8 @@ public class MMFF94 implements ForceField {
                             stretchBend.put(Arrays.asList(atom2, atom, atom3), findStretchBendParameters(atom2, atom, atom3));
                         }
                         if (atom.getBondCount() >= 3) {
-                            for (IAtom atom4 : atomContainer.getConnectedAtomsList(atom)) {
+                            for (IBond bond4 : atom.bonds()) {
+                                IAtom atom4 = bond4.getOther(atom);
                                 if (atom4 == atom2 || atom4 == atom3) {
                                     continue;
                                 }
@@ -191,7 +194,8 @@ public class MMFF94 implements ForceField {
                         }
                         //torsion
                         if (!atom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear && !atom3.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear && atom3.getBondCount() >= 2) {
-                            for (IAtom atom4 : atomContainer.getConnectedAtomsList(atom3)) {
+                            for (IBond bond4 : atom3.bonds()) {
+                                IAtom atom4 = bond4.getOther(atom3);
                                 if (atom4 == atom || atom4 == atom2) {
                                     continue;
                                 }
@@ -654,7 +658,10 @@ public class MMFF94 implements ForceField {
             if (index != -1) {
                 for (int z = index; z < torsionParameters.size(); z++) {
                     Float[] parameters = torsionParameters.get(z);
-                    if (parameters[0] == torsionType && parameters[2] == j && parameters[3] == k) {
+                    if (parameters[2] != j || parameters[3] > k) {
+                        break;
+                    }
+                    if (parameters[0] == torsionType && parameters[3] == k) {
                         if (i == parameters[1] && l == parameters[4]) {
                             return parameters;
                         }

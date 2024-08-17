@@ -26,6 +26,7 @@ package org.jme.forcefield.mmff;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,15 +69,16 @@ public class MMFF94ElectrostaticComponent implements EnergyComponent {
     public double calculateEnergy(IAtomContainer atomContainer, double dielectricConstant) {
         HashMap<List<IAtom>, Boolean> nonBondedInteraction = (HashMap<List<IAtom>, Boolean>) atomContainer.getProperty(MMFF94.MMFF94_NON_BONDED_INTERACTION);
         Objects.requireNonNull(nonBondedInteraction, "MMFF94 parameters need to be assigned first");
-        double totalEnergy = nonBondedInteraction.entrySet().stream().mapToDouble((entry) -> {
+        double totalEnergy = 0;
+        for (Map.Entry<List<IAtom>, Boolean> entry : nonBondedInteraction.entrySet()) {
             IAtom iAtom = entry.getKey().get(0);
             IAtom jAtom = entry.getKey().get(1);
             double energy = calculateEnergy(iAtom, jAtom, dielectricConstant, entry.getValue());
             if (LOGGER.isLoggable(Level.FINE)) {
                 LOGGER.fine(String.format("Electro:\t%s-%s\t%f", iAtom.getAtomTypeName(), jAtom.getAtomTypeName(), energy));
             }
-            return energy;
-        }).sum();
+            totalEnergy += energy;
+        }
         LOGGER.fine("total electrostatic:\t" + totalEnergy);
         return totalEnergy;
     }
