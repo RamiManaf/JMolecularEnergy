@@ -23,13 +23,13 @@
  */
 package org.jme.forcefield.mmff;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.jme.forcefield.mmff.MMFF94.checkParametersAssigned;
-import static org.jme.forcefield.mmff.MMFF94.isSeparatedByNBonds;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
@@ -95,7 +95,18 @@ public class MMFF94ElectrostaticComponent implements EnergyComponent {
     public double calculateEnergy(IAtom iAtom, IAtom jAtom, double dielectricConstant) {
         checkParametersAssigned(iAtom);
         checkParametersAssigned(jAtom);
-        return calculateEnergy(iAtom, jAtom, dielectricConstant, isSeparatedByNBonds(iAtom, jAtom, 3, false));
+        if (iAtom.getContainer() != null && iAtom.getContainer().equals(jAtom.getContainer())) {
+            HashMap<List<IAtom>, Boolean> nonBondedInteraction = (HashMap<List<IAtom>, Boolean>) iAtom.getContainer().getProperty(MMFF94.MMFF94_NON_BONDED_INTERACTION);
+            List<IAtom> atoms;
+            if (iAtom.getIndex() < jAtom.getIndex()) {
+                atoms = Arrays.asList(iAtom, jAtom);
+            } else {
+                atoms = Arrays.asList(jAtom, iAtom);
+            }
+            return calculateEnergy(iAtom, jAtom, dielectricConstant, nonBondedInteraction.get(atoms));
+        } else {
+            return calculateEnergy(iAtom, jAtom, dielectricConstant, false);
+        }
     }
 
     private double calculateEnergy(IAtom iAtom, IAtom jAtom, double dielectricConstant, boolean separatedBy3Bonds) {
