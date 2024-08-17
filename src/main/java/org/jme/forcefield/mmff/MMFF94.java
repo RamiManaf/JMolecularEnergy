@@ -1097,9 +1097,9 @@ public class MMFF94 implements ForceField {
 
             for (int i = 0; i < levelSize; i++) {
                 IAtom currentAtom = queue.poll();
-                List<IAtom> connectedAtoms = currentAtom.getContainer().getConnectedAtomsList(currentAtom);
 
-                for (IAtom neighbor : connectedAtoms) {
+                for (IBond bond : currentAtom.bonds()) {
+                    IAtom neighbor = bond.getOther(currentAtom);
                     if (neighbor.equals(atom2)) {
                         return orMoreBonds ? (depth >= n) : depth == n;
                     }
