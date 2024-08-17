@@ -26,6 +26,7 @@ package org.jme.forcefield.mmff;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.jme.forcefield.mmff.MMFF94.MMFF94_TYPE;
 import org.openscience.cdk.interfaces.IAtom;
@@ -41,11 +42,12 @@ public class MMFF94VdwComponent implements EnergyComponent {
     private static final Logger LOGGER = Logger.getLogger(MMFF94VdwComponent.class.getName());
 
     /**
-     * calculates the Van Der Waals interaction energy  between all the atoms in the
-     * provided atom container if the atoms are separated by three or more bonds
-     * or they are not from the same molecule.
+     * calculates the Van Der Waals interaction energy between all the atoms in
+     * the provided atom container if the atoms are separated by three or more
+     * bonds or they are not from the same molecule.
+     *
      * @param atomContainer
-     * @return 
+     * @return
      */
     @Override
     public double calculateEnergy(IAtomContainer atomContainer) {
@@ -55,7 +57,9 @@ public class MMFF94VdwComponent implements EnergyComponent {
             IAtom iAtom = entry.getKey().get(0);
             IAtom jAtom = entry.getKey().get(1);
             double energy = calculateEnergy(iAtom, jAtom);
-            LOGGER.fine(String.format("Vdw:\t%s-%s\t%f", iAtom.getAtomTypeName(), jAtom.getAtomTypeName(), energy));
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.fine(String.format("Vdw:\t%s-%s\t%f", iAtom.getAtomTypeName(), jAtom.getAtomTypeName(), energy));
+            }
             return energy;
         }).sum();
         LOGGER.fine("total Vdw:\t" + totalEnergy);

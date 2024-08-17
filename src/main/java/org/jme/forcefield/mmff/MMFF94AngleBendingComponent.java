@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jme.forcefield.GeometryUtils;
 import static org.jme.forcefield.mmff.MMFF94.MMFF94_PARAMETER_GEOMETRIC_PROPERTIES;
@@ -37,7 +38,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
 
 /**
- * 
+ *
  * @author Rami Manaf Abdullah
  */
 public class MMFF94AngleBendingComponent implements EnergyComponent {
@@ -58,7 +59,9 @@ public class MMFF94AngleBendingComponent implements EnergyComponent {
         double totalEnergy = angleBending.entrySet().stream().mapToDouble((entry) -> {
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), entry.getValue());
-            LOGGER.fine(String.format("Bending:\t%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), energy));
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.fine(String.format("Bending:\t%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), energy));
+            }
             return energy;
         }).sum();
         LOGGER.fine("total angle bend:\t" + totalEnergy);

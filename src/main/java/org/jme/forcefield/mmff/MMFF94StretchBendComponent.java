@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jme.forcefield.GeometryUtils;
 import static org.jme.forcefield.mmff.MMFF94.MMFF94_PARAMETER_GEOMETRIC_PROPERTIES;
@@ -60,7 +61,9 @@ public class MMFF94StretchBendComponent implements EnergyComponent {
         double totalEnergy = stretchBend.entrySet().stream().mapToDouble((entry) -> {
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), angleBending.get(atoms), entry.getValue());
-            LOGGER.fine(String.format("Stretch-Bend:\t%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), energy));
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.fine(String.format("Stretch-Bend:\t%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), energy));
+            }
             return energy;
         }).sum();
         LOGGER.fine("total stretch-bend:\t" + totalEnergy);
