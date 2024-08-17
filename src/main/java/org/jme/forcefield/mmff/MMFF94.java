@@ -157,8 +157,12 @@ public class MMFF94 implements ForceField {
             atom.setProperty(MMFF94_VDW_INTERACTION, mmffParameters.vdwParameters.get(atomType - (atomType >= 87 ? 5 : 1)));
             //non bonded interaction
             for (IAtom atom2 : atomContainer.atoms()) {
-                if (atom != atom2 && atom.getIndex() < atom2.getIndex() && isSeparatedByNBonds(atom, atom2, 3, true)) {
-                    nonBondedInteraction.put(Arrays.asList(atom, atom2), isSeparatedByNBonds(atom, atom2, 3, false));
+                if (atom.getIndex() >= atom2.getIndex()) {
+                    continue;
+                }
+                boolean[] separatedBy3OrMore = isSeparatedByNOrMoreBonds(atom, atom2, 3);
+                if ((separatedBy3OrMore[0] || separatedBy3OrMore[1])) {
+                    nonBondedInteraction.put(Arrays.asList(atom, atom2), separatedBy3OrMore[0]);
                 }
             }
             //bonded interaction
@@ -1079,9 +1083,19 @@ public class MMFF94 implements ForceField {
         throw new UnsupportedOperationException(String.format("heavy atoms (%s) are not supported", atom.getAtomTypeName()));
     }
 
-    static boolean isSeparatedByNBonds(IAtom atom1, IAtom atom2, int n, boolean orMoreBonds) {
-        if (n <= 0) {
-            return atom1 != atom2;
+    /**
+     *
+     * @param atom1
+     * @param atom2
+     * @param n
+     * @return array with the first element describing if it was separated by N
+     * bonds and the second one if it was more than N.
+     */
+    private static boolean[] isSeparatedByNOrMoreBonds(IAtom atom1, IAtom atom2, int n) {
+        if (n < 0) {
+            throw new IllegalArgumentException();
+        } else if (n == 0) {
+            return new boolean[]{atom1.equals(atom2), !atom1.equals(atom2)};
         }
 
         HashSet<IAtom> searched = new HashSet<>();
@@ -1101,7 +1115,7 @@ public class MMFF94 implements ForceField {
                 for (IBond bond : currentAtom.bonds()) {
                     IAtom neighbor = bond.getOther(currentAtom);
                     if (neighbor.equals(atom2)) {
-                        return orMoreBonds ? (depth >= n) : depth == n;
+                        return new boolean[]{depth == n, false};
                     }
                     if (searched.add(neighbor)) {
                         queue.add(neighbor);
@@ -1110,7 +1124,7 @@ public class MMFF94 implements ForceField {
             }
         }
 
-        return orMoreBonds; // If we exit the loop, atom2 was not found within n bonds.
+        return new boolean[]{false, true}; // If we exit the loop, atom2 was not found within n bonds.
     }
 
     private static int binarySearch(List<Float[]> array, int keyIndex, float key) {
