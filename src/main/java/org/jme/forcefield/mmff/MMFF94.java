@@ -384,13 +384,9 @@ public class MMFF94 implements ForceField {
             checkParametersAssigned(atomContainer.getAtom(0));
         }
         double energy = 0;
-        energy += bondStretchingComponent.calculateEnergy(atomContainer);
-        energy += angleBendingComponent.calculateEnergy(atomContainer);
-        energy += stretchBendComponent.calculateEnergy(atomContainer);
-        energy += outOfPlaneComponent.calculateEnergy(atomContainer);
-        energy += torsionComponent.calculateEnergy(atomContainer);
-        energy += vdwComponent.calculateEnergy(atomContainer);
-        energy += electrostaticComponent.calculateEnergy(atomContainer);
+        for (EnergyComponent energyComponent : energyComponents) {
+            energy += energyComponent.calculateEnergy(atomContainer);
+        }
         return energy;
     }
 
