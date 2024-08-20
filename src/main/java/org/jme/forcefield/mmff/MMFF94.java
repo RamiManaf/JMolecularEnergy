@@ -100,7 +100,7 @@ public class MMFF94 implements ForceField {
 
     @Override
     public List<EnergyComponent> getEnergyComponents() {
-        return Collections.unmodifiableList(energyComponents);
+        return energyComponents;
     }
 
     /**
