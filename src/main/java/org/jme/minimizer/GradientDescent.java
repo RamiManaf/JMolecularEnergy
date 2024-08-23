@@ -51,16 +51,16 @@ public class GradientDescent extends EnergyMinimizer {
             atomContainerGradients[i] = new double[]{stepSize, stepSize, stepSize};
         }
         boolean initializedGradients = false;
-        double lastCalculatedEnergy = forcefield.calculateEnergy(container);
-        double energyPerStep = 0;
+        double lastEnergy = forcefield.calculateEnergy(container);
+        double previousStepEnergy = 0;
         if (onStepConsumer != null) {
-            onStepConsumer.accept(step, lastCalculatedEnergy);
+            onStepConsumer.accept(step, lastEnergy);
         }
         while (step < maximumSteps) {
-            if (step != 0 && Math.abs(energyPerStep - lastCalculatedEnergy) <= threshold) {
+            if (step != 0 && Math.abs(previousStepEnergy - lastEnergy) <= threshold) {
                 break;
             }
-            energyPerStep = lastCalculatedEnergy;
+            previousStepEnergy = lastEnergy;
             for (IAtom atom : container.atoms()) {
                 Point3d point = atom.getPoint3d();
                 double[] atomGradients = atomContainerGradients[atom.getIndex()];
@@ -73,15 +73,17 @@ public class GradientDescent extends EnergyMinimizer {
                     distance = Math.min(Math.abs(stepSize * oneAxisGradient), .3) * Math.signum(oneAxisGradient);
                     movePoint(point, distance, i);
                     if (constraint == null || constraint.check(forcefield, container) || !initializedGradients) {
-                        double difference = forcefield.calculateEnergy(container) - lastCalculatedEnergy;
-                        atomGradients[i] = -difference / (oneAxisGradient);
+                        double difference = forcefield.calculateEnergy(container) - lastEnergy;
+                        atomGradients[i] = -difference / (distance==0?1:distance);
                         if (!initializedGradients) {
                             movePoint(point, -distance, i);
                         } else {
                             if (difference > 0) {
                                 movePoint(point, -distance, i);
+                                atomGradients[i] = atomGradients[i]*0.9;
                             } else {
-                                lastCalculatedEnergy += difference;
+                                lastEnergy += difference;
+                                atomGradients[i] = atomGradients[i]*1.05;
                             }
                         }
                     }else{
@@ -94,7 +96,7 @@ public class GradientDescent extends EnergyMinimizer {
             } else {
                 step++;
                 if (onStepConsumer != null) {
-                    onStepConsumer.accept(step, lastCalculatedEnergy);
+                    onStepConsumer.accept(step, lastEnergy);
                 }
             }
         }
