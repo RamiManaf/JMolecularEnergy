@@ -29,55 +29,37 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * energy minimization based on Adam optimization algorithm. This is commonly
- * used for avoiding gradient descent explosion
+ * Gradient descent energy minimizer
  *
  * @author Rami Manaf Abdullah
  */
-public class Adam extends EnergyMinimizer {
+public class GradientDescentMinimizer extends EnergyMinimizer {
 
-    private final ForceField forcefield;
-    private final double beta1;
-    private final double beta2;
-    private final double epsilon;
+    private ForceField forcefield;
 
-    /**
-     * creates a new instance of Adam optimizer
-     *
-     * @param forceField the force field used in optimization
-     * @param beta1
-     * @param beta2
-     * @param epsilon
-     */
-    public Adam(ForceField forceField, double beta1, double beta2, double epsilon) {
-        this.forcefield = forceField;
-        this.beta1 = beta1;
-        this.beta2 = beta2;
-        this.epsilon = epsilon;
+
+    public GradientDescentMinimizer(ForceField forcefield) {
+        this.forcefield = forcefield;
     }
 
     @Override
     public void minimize(IAtomContainer container, int maximumSteps, double stepSize, double threshold) {
         step = 0;
         double[][] atomContainerGradients = new double[container.getAtomCount()][3];
-        AdamOptimizer[][] adams = new AdamOptimizer[container.getAtomCount()][3];
         for (int i = 0; i < atomContainerGradients.length; i++) {
             atomContainerGradients[i] = new double[]{stepSize, stepSize, stepSize};
-            for (int j = 0; j < 3; j++) {
-                adams[i][j] = new AdamOptimizer(stepSize, beta1, beta2, epsilon);
-            }
         }
         boolean initializedGradients = false;
-        double lastCalculatedEnergy = forcefield.calculateEnergy(container);
-        double energyPerStep = 0;
+        double lastEnergy = forcefield.calculateEnergy(container);
+        double previousStepEnergy = 0;
         if (onStepConsumer != null) {
-            onStepConsumer.accept(step, lastCalculatedEnergy);
+            onStepConsumer.accept(step, lastEnergy);
         }
         while (step < maximumSteps) {
-            if (step != 0 && Math.abs(energyPerStep - lastCalculatedEnergy) <= threshold) {
+            if (step != 0 && Math.abs(previousStepEnergy - lastEnergy) <= threshold) {
                 break;
             }
-            energyPerStep = lastCalculatedEnergy;
+            previousStepEnergy = lastEnergy;
             for (IAtom atom : container.atoms()) {
                 Point3d point = atom.getPoint3d();
                 double[] atomGradients = atomContainerGradients[atom.getIndex()];
@@ -86,22 +68,24 @@ public class Adam extends EnergyMinimizer {
                     if (oneAxisGradient == 0) {
                         continue;
                     }
-                    double initialEnergy = forcefield.calculateEnergy(container);
-                    double distance = adams[atom.getIndex()][i].optimize((i == 0 ? point.x : (i == 1 ? point.y : point.z)), oneAxisGradient) - (i == 0 ? point.x : (i == 1 ? point.y : point.z));
+                    double distance;
+                    distance = Math.min(Math.abs(stepSize * oneAxisGradient), .3) * Math.signum(oneAxisGradient);
                     movePoint(point, distance, i);
                     if (constraint == null || constraint.check(forcefield, container) || !initializedGradients) {
-                        double difference = forcefield.calculateEnergy(container) - initialEnergy;
-                        atomGradients[i] = -difference / Math.abs(distance);
+                        double difference = forcefield.calculateEnergy(container) - lastEnergy;
+                        atomGradients[i] = -difference / (distance==0?1:distance);
                         if (!initializedGradients) {
                             movePoint(point, -distance, i);
                         } else {
                             if (difference > 0) {
                                 movePoint(point, -distance, i);
+                                atomGradients[i] = atomGradients[i]*0.9;
                             } else {
-                                lastCalculatedEnergy += difference;
+                                lastEnergy += difference;
+                                atomGradients[i] = atomGradients[i]*1.05;
                             }
                         }
-                    } else {
+                    }else{
                         movePoint(point, -distance, i);
                     }
                 }
@@ -111,7 +95,7 @@ public class Adam extends EnergyMinimizer {
             } else {
                 step++;
                 if (onStepConsumer != null) {
-                    onStepConsumer.accept(step, lastCalculatedEnergy);
+                    onStepConsumer.accept(step, lastEnergy);
                 }
             }
         }
@@ -126,37 +110,4 @@ public class Adam extends EnergyMinimizer {
             point.z += distance;
         }
     }
-
-    private static class AdamOptimizer {
-
-        private final double learningRate;
-        private final double beta1;
-        private final double beta2;
-        private final double epsilon;
-
-        private double m;
-        private double v;
-        private int t;
-
-        public AdamOptimizer(double learningRate, double beta1, double beta2, double epsilon) {
-            this.learningRate = learningRate;
-            this.beta1 = beta1;
-            this.beta2 = beta2;
-            this.epsilon = epsilon;
-            this.m = 0.0;
-            this.v = 0.0;
-            this.t = 1;
-        }
-
-        public double optimize(double x, double gradient) {
-            t++;
-            m = beta1 * m + (1 - beta1) * gradient;
-            v = beta2 * v + (1 - beta2) * gradient * gradient;
-            double m_hat = m / (1 - Math.pow(beta1, t));
-            double v_hat = v / (1 - Math.pow(beta2, t));
-            x = x - learningRate * m_hat / (Math.sqrt(v_hat) + epsilon);
-            return x;
-        }
-    }
-
 }
