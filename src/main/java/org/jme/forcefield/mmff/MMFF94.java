@@ -109,6 +109,7 @@ public class MMFF94 implements ForceField {
      *
      * @param atomContainer
      */
+    @Override
     public void assignParameters(IAtomContainer atomContainer) {
         if (!mmff.assignAtomTypes(atomContainer)) {
             LOGGER.warning("Not all atom types are assigned");

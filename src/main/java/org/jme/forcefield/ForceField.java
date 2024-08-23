@@ -28,17 +28,31 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
  * A general interface for defining a force field
+ *
  * @author Rami Manaf Abdullah
  */
 public interface ForceField {
+
+    /**
+     * a one time preliminary assignation of the force field parameters for the molecule. This is
+     * most of the times is required before calculating any energy is possible.
+     *
+     * @param atomContainer
+     */
+    public void assignParameters(IAtomContainer atomContainer);
     
     /**
      * calculates potential energy for an atom container
+     *
      * @param atomContainer
-     * @return 
+     * @return
      */
     public double calculateEnergy(IAtomContainer atomContainer);
-    
+
+    /**
+     * return the energy components
+     * @return 
+     */
     public List<EnergyComponent> getEnergyComponents();
-    
+
 }
