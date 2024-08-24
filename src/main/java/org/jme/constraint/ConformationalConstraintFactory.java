@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2023 Rami Manaf Abdullah.
+ * Copyright 2024 Rami Manaf Abdullah.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,65 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.jme.forcefield;
+package org.jme.constraint;
 
 import javax.vecmath.Point3d;
+import org.jme.forcefield.ForceField;
+import org.jme.forcefield.GeometryUtils;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * Restriction for molecules atom movement based on a specific criteria. This
- * class provide ready to use implementation of commonly used constrains such as
- * distance constrain between atoms.
  *
  * @author Rami Manaf Abdullah
- * @param <F>
  */
-public interface Constraint<F extends ForceField> {
-
-    /**
-     * checks if the container meet the constraint. If the container violates
-     * the constraint the method will return false. Otherwise the container
-     * meets the constraint and the method will return true.
-     *
-     * @param forcefield forcefield
-     * @param container
-     * @return
-     */
-    public boolean check(F forcefield, IAtomContainer container);
-
-    /**
-     * combine the two constraints using AND logical operator in a new
-     * constraint.
-     *
-     * @param constraint
-     * @return
-     */
-    public default Constraint and(Constraint<F> constraint) {
-        return (Constraint<F>) (F forcefield, IAtomContainer container) -> Constraint.this.check(forcefield, container) && constraint.check(forcefield, container);
-    }
-
-    /**
-     * combine the two constraints using OR logical operator in a new
-     * constraint.
-     *
-     * @param constraint
-     * @return
-     */
-    public default Constraint or(Constraint<F> constraint) {
-        return (Constraint<F>) (F forcefield, IAtomContainer container) -> Constraint.this.check(forcefield, container) || constraint.check(forcefield, container);
-    }
-
-    /**
-     * invert this constraint using NOT logical operator and return a new
-     * constraint.
-     *
-     * @return
-     */
-    public default Constraint not() {
-        return (Constraint<F>) (F forcefield, IAtomContainer container) -> !Constraint.this.check(forcefield, container);
-    }
-
+public class ConformationalConstraintFactory {
+    
     /**
      * creates a distance constraint between the two atoms with minimum and
      * maximum distance allowed.
@@ -225,5 +180,5 @@ public interface Constraint<F extends ForceField> {
             }
         };
     }
-
+    
 }

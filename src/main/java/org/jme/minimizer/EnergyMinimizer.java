@@ -24,7 +24,7 @@
 package org.jme.minimizer;
 
 import java.util.function.BiConsumer;
-import org.jme.forcefield.Constraint;
+import org.jme.constraint.Constraint;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
