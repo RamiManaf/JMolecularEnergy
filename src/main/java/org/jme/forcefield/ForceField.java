@@ -34,24 +34,31 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 public interface ForceField {
 
     /**
-     * a one time preliminary assignation of the force field parameters for the molecule. This is
-     * most of the times is required before calculating any energy is possible.
+     * Assigns the force field parameters to the given molecule.
+     * <p>
+     * This method must be called before any energy calculations can be
+     * performed. It sets up the necessary parameters specific to the molecule.
+     * If the molecule undergoes structural changes, such as the formation or
+     * breakup of bonds, this method needs to be called again to update the
+     * parameters accordingly.
+     * </p>
      *
-     * @param atomContainer
+     * @param atomContainer The container holding the atoms of the molecule.
      */
     public void assignParameters(IAtomContainer atomContainer);
-    
+
     /**
-     * calculates potential energy for an atom container
+     * Calculates the potential energy for the given molecule.
      *
-     * @param atomContainer
-     * @return
+     * @param atomContainer The container holding the atoms of the molecule.
+     * @return The potential energy.
      */
     public double calculateEnergy(IAtomContainer atomContainer);
 
     /**
-     * return the energy components
-     * @return 
+     * Retrieves the individual energy components of the force field.
+     *
+     * @return A {@code List} of {@code EnergyComponent} objects.
      */
     public List<EnergyComponent> getEnergyComponents();
 

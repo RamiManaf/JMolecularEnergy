@@ -26,11 +26,25 @@ package org.jme.forcefield;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
+ * Represents a single energy component within a force field.
+ * <p>
+ * Each {@code EnergyComponent} contributes a distinct portion of the total
+ * potential energy for a molecule. Implementations of this interface
+ * encapsulate the calculations relevant to their specific type of energy, such
+ * as bond stretching, angle bending, or torsional forces.
+ * </p>
  *
  * @author Rami Manaf Abdullah
  */
 public interface EnergyComponent {
-    
+
+    /**
+     * Calculates the potential energy with respect to atomic positions for this
+     * component.
+     *
+     * @param atomContainer The container holding the molecule's atoms.
+     * @return The potential energy as a {@code double}.
+     */
     public double calculateEnergy(IAtomContainer atomContainer);
-    
+
 }
