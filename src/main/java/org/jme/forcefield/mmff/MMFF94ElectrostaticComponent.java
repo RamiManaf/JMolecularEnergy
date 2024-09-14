@@ -34,12 +34,13 @@ import static org.jme.forcefield.mmff.MMFF94.checkParametersAssigned;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
+import org.jme.forcefield.ForceField;
 
 /**
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94ElectrostaticComponent implements EnergyComponent {
+public class MMFF94ElectrostaticComponent extends EnergyComponent {
 
     private static final Logger LOGGER = Logger.getLogger(MMFF94ElectrostaticComponent.class.getName());
 
@@ -112,14 +113,14 @@ public class MMFF94ElectrostaticComponent implements EnergyComponent {
     }
 
     private double calculateEnergy(IAtom iAtom, IAtom jAtom, double dielectricConstant, boolean separatedBy3Bonds) {
+        Objects.requireNonNull(forceField);
         double qI = iAtom.getCharge();
         double qJ = jAtom.getCharge();
         double electrostaticEnergy = 332.0716 * qI * qJ / (dielectricConstant * (iAtom.getPoint3d().distance(jAtom.getPoint3d()) + 0.05));
         if (iAtom.getContainer() == jAtom.getContainer() && separatedBy3Bonds) {
-            return electrostaticEnergy * 0.75;
-        } else {
-            return electrostaticEnergy;
+            electrostaticEnergy *= 0.75;
         }
+        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(electrostaticEnergy, forceField.getEnergyUnit());
     }
 
 }

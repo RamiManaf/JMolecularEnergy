@@ -33,12 +33,13 @@ import static org.jme.forcefield.mmff.MMFF94.MMFF94_TYPE;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
+import org.jme.forcefield.ForceField;
 
 /**
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94VdwComponent implements EnergyComponent {
+public class MMFF94VdwComponent extends EnergyComponent {
 
     private static final Logger LOGGER = Logger.getLogger(MMFF94VdwComponent.class.getName());
 
@@ -84,6 +85,7 @@ public class MMFF94VdwComponent implements EnergyComponent {
     }
 
     private double calculateVdwEnergy(IAtom iAtom, IAtom jAtom) {
+        Objects.requireNonNull(forceField);
         int i = iAtom.getProperty(MMFF94_TYPE);
         int j = jAtom.getProperty(MMFF94_TYPE);
         //there is a 4 number gap in mmff atom type number (83-86)
@@ -117,7 +119,7 @@ public class MMFF94VdwComponent implements EnergyComponent {
         double distance = iAtom.getPoint3d().distance(jAtom.getPoint3d());
         double vdwEnergy = epsilonIJ * Math.pow((1.07 * RStarIJ) / (distance + 0.07 * RStarIJ), 7);
         vdwEnergy = vdwEnergy * (((1.12 * Math.pow(RStarIJ, 7)) / (Math.pow(distance, 7) + 0.12 * Math.pow(RStarIJ, 7))) - 2);
-        return vdwEnergy;
+        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(vdwEnergy, forceField.getEnergyUnit());
     }
 
 }

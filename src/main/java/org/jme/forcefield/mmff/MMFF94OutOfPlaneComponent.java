@@ -36,12 +36,13 @@ import static org.jme.forcefield.mmff.MMFF94.checkParametersAssigned;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
+import org.jme.forcefield.ForceField;
 
 /**
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94OutOfPlaneComponent implements EnergyComponent {
+public class MMFF94OutOfPlaneComponent extends EnergyComponent {
 
     private static final Logger LOGGER = Logger.getLogger(MMFF94OutOfPlaneComponent.class.getName());
 
@@ -88,10 +89,12 @@ public class MMFF94OutOfPlaneComponent implements EnergyComponent {
     }
 
     private double calculateEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom, Float[] parameters) {
+        Objects.requireNonNull(forceField);
         if (parameters == null) {
             return 0;
         }
         double angle = GeometryUtils.calculateOutOfPlaneAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d(), lAtom.getPoint3d()) * 180 / Math.PI;
-        return Math.toRadians(Math.toRadians(143.9325)) * .5 * parameters[4] * angle * angle;
+        double energy = Math.toRadians(Math.toRadians(143.9325)) * .5 * parameters[4] * angle * angle;
+        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
     }
 }

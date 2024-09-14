@@ -37,12 +37,13 @@ import static org.jme.forcefield.mmff.MMFF94.checkParametersAssigned;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
+import org.jme.forcefield.ForceField;
 
 /**
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94StretchBendComponent implements EnergyComponent {
+public class MMFF94StretchBendComponent extends EnergyComponent {
 
     private static final Logger LOGGER = Logger.getLogger(MMFF94StretchBendComponent.class.getName());
 
@@ -92,6 +93,7 @@ public class MMFF94StretchBendComponent implements EnergyComponent {
     }
 
     public double calculateEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, Float[] angleBendingParameters, Float[] stretchBendParameters) {
+        Objects.requireNonNull(forceField);
         if (jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear) {
             return 0;
         }
@@ -100,7 +102,8 @@ public class MMFF94StretchBendComponent implements EnergyComponent {
         MMFF94Parameters.StretchParameters jkStretch = iAtom.getContainer().getBond(jAtom, kAtom).<MMFF94Parameters.StretchParameters>getProperty(MMFF94_PARAMETER_STRETCH);
         double deltaRij = iAtom.getPoint3d().distance(jAtom.getPoint3d()) - ijStretch.r0;
         double deltaRjk = jAtom.getPoint3d().distance(kAtom.getPoint3d()) - jkStretch.r0;
-        return 2.51210 * (stretchBendParameters[4] * deltaRij + stretchBendParameters[5] * deltaRjk) * deltaAngle;
+        double energy = 2.51210 * (stretchBendParameters[4] * deltaRij + stretchBendParameters[5] * deltaRjk) * deltaAngle;
+        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
     }
 
 }

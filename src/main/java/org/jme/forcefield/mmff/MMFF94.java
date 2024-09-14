@@ -54,7 +54,7 @@ import org.openscience.cdk.ringsearch.RingSearch;
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94 implements ForceField {
+public class MMFF94 extends ForceField {
 
     static final String MMFF94_TYPE = "mmff.type";
     static final String MMFF94_RINGS = "mmff.rings";
@@ -80,7 +80,6 @@ public class MMFF94 implements ForceField {
     private MMFF94TorsionComponent torsionComponent = new MMFF94TorsionComponent();
     private MMFF94VdwComponent vdwComponent = new MMFF94VdwComponent();
     private MMFF94ElectrostaticComponent electrostaticComponent = new MMFF94ElectrostaticComponent();
-    private List<EnergyComponent> energyComponents;
 
     /**
      * initialize MMFF94 and load its parameters
@@ -88,6 +87,7 @@ public class MMFF94 implements ForceField {
      * @param mmff94s true for mmff94s and false for mmff94
      */
     public MMFF94(boolean mmff94s) {
+        super();
         this.mmff94s = mmff94s;
         try {
             this.mmffParameters = MMFF94Parameters.getInstance();
@@ -95,12 +95,9 @@ public class MMFF94 implements ForceField {
             LOGGER.log(Level.SEVERE, "Could not load MMFF94 parameter files", ex);
             throw new RuntimeException(ex);
         }
-        energyComponents = new ArrayList<>(Arrays.asList(bondStretchingComponent, stretchBendComponent, angleBendingComponent, outOfPlaneComponent, torsionComponent, vdwComponent, electrostaticComponent));
-    }
-
-    @Override
-    public List<EnergyComponent> getEnergyComponents() {
-        return energyComponents;
+        for(EnergyComponent component : Arrays.asList(bondStretchingComponent, stretchBendComponent, angleBendingComponent, outOfPlaneComponent, torsionComponent, vdwComponent, electrostaticComponent)){
+            addEnergyComponent(component);
+        }
     }
 
     /**
@@ -385,7 +382,7 @@ public class MMFF94 implements ForceField {
             checkParametersAssigned(atomContainer.getAtom(0));
         }
         double energy = 0;
-        for (EnergyComponent energyComponent : energyComponents) {
+        for (EnergyComponent energyComponent : components) {
             energy += energyComponent.calculateEnergy(atomContainer);
         }
         return energy;

@@ -23,6 +23,7 @@
  */
 package org.jme.forcefield.mmff;
 
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.jme.forcefield.mmff.MMFF94.MMFF94_PARAMETER_STRETCH;
@@ -31,12 +32,13 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.jme.forcefield.EnergyComponent;
+import org.jme.forcefield.ForceField;
 
 /**
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94BondStretchingComponent implements EnergyComponent {
+public class MMFF94BondStretchingComponent extends EnergyComponent {
 
     private static final Logger LOGGER = Logger.getLogger(MMFF94BondStretchingComponent.class.getName());
 
@@ -76,10 +78,12 @@ public class MMFF94BondStretchingComponent implements EnergyComponent {
     }
 
     private double calculateEnergy(IBond bond, MMFF94Parameters.StretchParameters parameters) {
+        Objects.requireNonNull(forceField);
         IAtom iAtom = bond.getBegin();
         IAtom jAtom = bond.getEnd();
         double deltaR = iAtom.getPoint3d().distance(jAtom.getPoint3d()) - parameters.r0;
-        return .5 * 143.9325 * parameters.kb * deltaR * deltaR * (1 - 2 * deltaR + (7d / 12d) * 4 * deltaR * deltaR);
+        double energy = .5 * 143.9325 * parameters.kb * deltaR * deltaR * (1 - 2 * deltaR + (7d / 12d) * 4 * deltaR * deltaR);
+        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
     }
 
 }

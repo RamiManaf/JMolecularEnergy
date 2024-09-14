@@ -36,12 +36,13 @@ import static org.jme.forcefield.mmff.MMFF94.checkParametersAssigned;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
+import org.jme.forcefield.ForceField;
 
 /**
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94AngleBendingComponent implements EnergyComponent {
+public class MMFF94AngleBendingComponent extends EnergyComponent {
 
     private static final Logger LOGGER = Logger.getLogger(MMFF94AngleBendingComponent.class.getName());
 
@@ -88,13 +89,16 @@ public class MMFF94AngleBendingComponent implements EnergyComponent {
     }
 
     private double calculateEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, Float[] parameters) {
+        Objects.requireNonNull(forceField);
         double angle = GeometryUtils.calculateAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) * 180 / Math.PI;
         double deltaAngle = angle - parameters[5];
+        double energy;
         if (jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear) {
-            return 143.9325 * parameters[4] * (1 + Math.cos(Math.toRadians(angle)));
+            energy = 143.9325 * parameters[4] * (1 + Math.cos(Math.toRadians(angle)));
         } else {
-            return Math.toRadians(Math.toRadians(143.9325)) * parameters[4] * .5 * deltaAngle * deltaAngle * (1 - 0.006981317 * deltaAngle);
+            energy = Math.toRadians(Math.toRadians(143.9325)) * parameters[4] * .5 * deltaAngle * deltaAngle * (1 - 0.006981317 * deltaAngle);
         }
+        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
     }
 
 }

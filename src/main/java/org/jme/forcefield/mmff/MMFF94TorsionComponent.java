@@ -35,12 +35,13 @@ import static org.jme.forcefield.mmff.MMFF94.checkParametersAssigned;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
+import org.jme.forcefield.ForceField;
 
 /**
  *
  * @author Rami Manaf Abdullah
  */
-public class MMFF94TorsionComponent implements EnergyComponent {
+public class MMFF94TorsionComponent extends EnergyComponent {
 
     private static final Logger LOGGER = Logger.getLogger(MMFF94TorsionComponent.class.getName());
 
@@ -90,6 +91,7 @@ public class MMFF94TorsionComponent implements EnergyComponent {
     }
 
     public double calculateEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom, Float[] torsionParameters) {
+        Objects.requireNonNull(forceField);
         if ((Integer) kAtom.getProperty(MMFF94_TYPE) < (Integer) jAtom.getProperty(MMFF94_TYPE)
                 || (jAtom.getProperty(MMFF94_TYPE).equals((Integer) kAtom.getProperty(MMFF94_TYPE)) && (Integer) iAtom.getProperty(MMFF94_TYPE) > (Integer) lAtom.getProperty(MMFF94_TYPE))) {
             IAtom temp = jAtom;
@@ -100,7 +102,8 @@ public class MMFF94TorsionComponent implements EnergyComponent {
             lAtom = temp;
         }
         double torsionAngle = GeometryUtils.calculateTorsionAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d(), lAtom.getPoint3d());//in radians
-        return 0.5 * (torsionParameters[5] * (1 + Math.cos(torsionAngle)) + torsionParameters[6] * (1 - Math.cos(2 * torsionAngle)) + torsionParameters[7] * (1 + Math.cos(3 * torsionAngle)));
+        double energy = 0.5 * (torsionParameters[5] * (1 + Math.cos(torsionAngle)) + torsionParameters[6] * (1 - Math.cos(2 * torsionAngle)) + torsionParameters[7] * (1 + Math.cos(3 * torsionAngle)));
+        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
     }
 
 }

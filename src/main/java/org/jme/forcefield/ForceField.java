@@ -23,15 +23,21 @@
  */
 package org.jme.forcefield;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * A general interface for defining a force field
+ * A general class for defining a force field
  *
  * @author Rami Manaf Abdullah
  */
-public interface ForceField {
+public abstract class ForceField {
+
+    protected EnergyUnit energyUnit = EnergyUnit.KCAL_PER_MOL;
+    protected List<EnergyComponent> components = new ArrayList<>();
 
     /**
      * Assigns the force field parameters to the given molecule.
@@ -45,7 +51,7 @@ public interface ForceField {
      *
      * @param atomContainer The container holding the atoms of the molecule.
      */
-    public void assignParameters(IAtomContainer atomContainer);
+    public abstract void assignParameters(IAtomContainer atomContainer);
 
     /**
      * Calculates the potential energy for the given molecule.
@@ -53,13 +59,90 @@ public interface ForceField {
      * @param atomContainer The container holding the atoms of the molecule.
      * @return The potential energy.
      */
-    public double calculateEnergy(IAtomContainer atomContainer);
+    public abstract double calculateEnergy(IAtomContainer atomContainer);
 
     /**
-     * Retrieves the individual energy components of the force field.
+     * Retrieves the list of individual energy components associated with this
+     * force field.
      *
-     * @return A {@code List} of {@code EnergyComponent} objects.
+     * @return An unmodifiable {@code List} of {@code EnergyComponent} objects
+     * associated with this force field.
      */
-    public List<EnergyComponent> getEnergyComponents();
+    public List<EnergyComponent> getEnergyComponents() {
+        return Collections.unmodifiableList(components);
+    }
+
+    /**
+     * Adds a new energy component to the force field.
+     *
+     * @param component The {@code EnergyComponent} to be added.
+     */
+    public void addEnergyComponent(EnergyComponent component) {
+        Objects.requireNonNull(component);
+        component.setForceField(this);
+        components.add(component);
+    }
+
+    /**
+     * Removes an existing energy component from the force field.
+     *
+     * @param component The {@code EnergyComponent} to be removed.
+     */
+    public void removeEnergyComponent(EnergyComponent component) {
+        Objects.requireNonNull(component);
+        component.setForceField(null);
+        components.remove(component);
+    }
+
+    /**
+     * Sets the unit of energy to be used by this force field. The default
+     * energy unit is kcal/mol.
+     *
+     * @param energyUnit The {@code EnergyUnit} to set.
+     */
+    public void setEnergyUnit(EnergyUnit energyUnit) {
+        this.energyUnit = Objects.requireNonNull(energyUnit);
+    }
+
+    /**
+     * Retrieves the current unit of energy used by this force field. The
+     * default energy unit is kcal/mol.
+     *
+     * @return The {@code EnergyUnit} currently set for this force field.
+     */
+    public EnergyUnit getEnergyUnit() {
+        return energyUnit;
+    }
+
+    /**
+     * Enum representing common energy units used in force field calculations.
+     */
+    public enum EnergyUnit {
+        KCAL_PER_MOL(4184.0),
+        KJ_PER_MOL(1000.0),
+        JOULE_PER_MOL(1.0);
+
+        private final double toJouleFactor;
+
+        private EnergyUnit(double toJouleFactor) {
+            this.toJouleFactor = toJouleFactor;
+        }
+
+        /**
+         * Converts a value from the current energy unit to the target energy
+         * unit.
+         *
+         * @param value The energy value in the current unit.
+         * @param toUnit The target energy unit to convert to.
+         * @return The converted value in the target unit.
+         */
+        public double convertTo(double value, EnergyUnit toUnit) {
+            if (this == toUnit) {
+                return value;
+            }
+            return (value * this.toJouleFactor) / toUnit.toJouleFactor;
+        }
+
+    }
 
 }
