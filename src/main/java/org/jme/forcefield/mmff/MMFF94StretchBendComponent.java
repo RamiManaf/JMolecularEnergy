@@ -119,7 +119,7 @@ public class MMFF94StretchBendComponent extends EnergyComponent {
         double energy = 2.51210 * (stretchBendParameters[4] * deltaRij + stretchBendParameters[5] * deltaRjk) * deltaAngle;
         energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
         if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.finer("%s\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex(), kAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), stretchBendParameters[0].intValue(), angle, deltaAngle, deltaRij, energy, stretchBendParameters[4]));
+            LOGGER.finer("%s\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex()+1, kAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), stretchBendParameters[0].intValue(), angle, deltaAngle, deltaRij, energy, stretchBendParameters[4]));
         }
         return energy;
     }

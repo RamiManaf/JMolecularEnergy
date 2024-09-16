@@ -110,7 +110,7 @@ public class MMFF94OutOfPlaneComponent extends EnergyComponent {
         double energy = Math.toRadians(Math.toRadians(143.9325)) * .5 * parameters[4] * angle * angle;
         energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
         if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.finer("%s\t%s #%d\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex(), kAtom.getSymbol(), kAtom.getIndex(), lAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), lAtom.getProperty(MMFF94_TYPE), angle, energy, parameters[4]));
+            LOGGER.finer("%s\t%s #%d\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex()+1, kAtom.getSymbol(), kAtom.getIndex()+1, lAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), lAtom.getProperty(MMFF94_TYPE), angle, energy, parameters[4]));
         }
         return energy;
     }

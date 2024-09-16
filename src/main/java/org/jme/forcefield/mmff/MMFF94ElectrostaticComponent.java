@@ -137,7 +137,7 @@ public class MMFF94ElectrostaticComponent extends EnergyComponent {
         }
         electrostaticEnergy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(electrostaticEnergy, forceField.getEnergyUnit());
         if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.finer("%s #%d\t%s #%d\t%d\t%d\t%.3f\t%.3f\t%.3f".formatted(iAtom.getSymbol(), iAtom.getIndex(), jAtom.getSymbol(), jAtom.getIndex(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), iAtom.getCharge(), jAtom.getCharge(), distance));
+            LOGGER.finer("%s #%d\t%s #%d\t%d\t%d\t%.3f\t%.3f\t%.3f".formatted(iAtom.getSymbol(), iAtom.getIndex()+1, jAtom.getSymbol(), jAtom.getIndex()+1, iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), iAtom.getCharge(), jAtom.getCharge(), distance));
         }
         return electrostaticEnergy;
     }

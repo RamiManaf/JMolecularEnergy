@@ -134,7 +134,7 @@ public class MMFF94VdwComponent extends EnergyComponent {
         vdwEnergy = vdwEnergy * (((1.12 * Math.pow(RStarIJ, 7)) / (Math.pow(distance, 7) + 0.12 * Math.pow(RStarIJ, 7))) - 2);
         vdwEnergy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(vdwEnergy, forceField.getEnergyUnit());
         if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.finer("%s #%d\t%s #%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), iAtom.getIndex(), jAtom.getSymbol(), jAtom.getIndex(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), distance, RStarIJ, epsilonIJ));
+            LOGGER.finer("%s #%d\t%s #%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), iAtom.getIndex()+1, jAtom.getSymbol(), jAtom.getIndex()+1, iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), distance, RStarIJ, epsilonIJ));
         }
         return vdwEnergy;
     }
