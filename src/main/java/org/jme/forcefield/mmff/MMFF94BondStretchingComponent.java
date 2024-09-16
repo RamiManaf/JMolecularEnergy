@@ -33,6 +33,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.jme.forcefield.EnergyComponent;
 import org.jme.forcefield.ForceField;
+import static org.jme.forcefield.mmff.MMFF94.MMFF94_TYPE;
 
 /**
  *
@@ -55,12 +56,19 @@ public class MMFF94BondStretchingComponent extends EnergyComponent {
         if (!atomContainer.isEmpty()) {
             checkParametersAssigned(atomContainer.getAtom(0));
         }
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("        B O N D   S T R E T C H I N G      \n"
+                    + "\n"
+                    + " ------ATOMNAMES------   ATOM TYPES   FF     BOND     IDEAL             STRAIN     FORCE\n"
+                    + "   I          J            I    J   CLASS   LENGTH   LENGTH    DIFF.    ENERGY   CONSTANT\n"
+                    + " ----------------------------------------------------------------------------------------");
+        }
         for (IBond bond : atomContainer.bonds()) {
             double energy = calculateEnergy(bond, bond.getProperty(MMFF94_PARAMETER_STRETCH));
             totalEnergy += energy;
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.fine(String.format("Stretch:\t%s-%s\t%f", bond.getBegin().getAtomTypeName(), bond.getEnd().getAtomTypeName(), energy));
-            }
+        }
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Total Bond Stretching Energy =\t%.5f\n".formatted(totalEnergy));
         }
         return totalEnergy;
     }
@@ -74,6 +82,13 @@ public class MMFF94BondStretchingComponent extends EnergyComponent {
     public double calculateEnergy(IBond bond) {
         checkParametersAssigned(bond.getBegin());
         MMFF94Parameters.StretchParameters parameters = bond.getProperty(MMFF94_PARAMETER_STRETCH);
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("        B O N D   S T R E T C H I N G      \n"
+                    + "\n"
+                    + " ------ATOMNAMES------   ATOM TYPES   FF     BOND     IDEAL             STRAIN     FORCE\n"
+                    + "   I          J            I    J   CLASS   LENGTH   LENGTH    DIFF.    ENERGY   CONSTANT\n"
+                    + " ----------------------------------------------------------------------------------------");
+        }
         return calculateEnergy(bond, parameters);
     }
 
@@ -81,9 +96,14 @@ public class MMFF94BondStretchingComponent extends EnergyComponent {
         Objects.requireNonNull(forceField);
         IAtom iAtom = bond.getBegin();
         IAtom jAtom = bond.getEnd();
-        double deltaR = iAtom.getPoint3d().distance(jAtom.getPoint3d()) - parameters.r0;
+        double length = iAtom.getPoint3d().distance(jAtom.getPoint3d());
+        double deltaR = length - parameters.r0;
         double energy = .5 * 143.9325 * parameters.kb * deltaR * deltaR * (1 - 2 * deltaR + (7d / 12d) * 4 * deltaR * deltaR);
-        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer(String.format("%s #%d\t%s #%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", iAtom.getSymbol(), iAtom.getIndex(), jAtom.getSymbol(), jAtom.getIndex(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), parameters.bondType, length, parameters.r0, deltaR, energy, parameters.kb));
+        }
+        return energy;
     }
 
 }

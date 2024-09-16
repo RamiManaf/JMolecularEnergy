@@ -35,6 +35,7 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.jme.forcefield.EnergyComponent;
 import org.jme.forcefield.ForceField;
+import static org.jme.forcefield.mmff.MMFF94.MMFF94_TYPE;
 
 /**
  *
@@ -71,16 +72,22 @@ public class MMFF94ElectrostaticComponent extends EnergyComponent {
         HashMap<List<IAtom>, Boolean> nonBondedInteraction = (HashMap<List<IAtom>, Boolean>) atomContainer.getProperty(MMFF94.MMFF94_NON_BONDED_INTERACTION);
         Objects.requireNonNull(nonBondedInteraction, "MMFF94 parameters need to be assigned first");
         double totalEnergy = 0;
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("    E L E C T R O S T A T I C     I N T E R A C T I O N      \n"
+                    + "\n"
+                    + " ------ATOMNAMES------   ATOM TYPES   I        J\n"
+                    + "   I          J            I    J   CHARGE   CHARGE   DISTANCE    \n"
+                    + " ----------------------------------------------------------------------------------------");
+        }
         for (Map.Entry<List<IAtom>, Boolean> entry : nonBondedInteraction.entrySet()) {
             IAtom iAtom = entry.getKey().get(0);
             IAtom jAtom = entry.getKey().get(1);
             double energy = calculateEnergy(iAtom, jAtom, dielectricConstant, entry.getValue());
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.fine(String.format("Electro:\t%s-%s\t%f", iAtom.getAtomTypeName(), jAtom.getAtomTypeName(), energy));
-            }
             totalEnergy += energy;
         }
-        LOGGER.fine("total electrostatic:\t" + totalEnergy);
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Total Electrostatic Interaction Energy =\t%.5f\n".formatted(totalEnergy));
+        }
         return totalEnergy;
     }
 
@@ -106,6 +113,13 @@ public class MMFF94ElectrostaticComponent extends EnergyComponent {
             } else {
                 atoms = Arrays.asList(jAtom, iAtom);
             }
+            if (LOGGER.isLoggable(Level.FINER)) {
+                LOGGER.finer("    E L E C T R O S T A T I C     I N T E R A C T I O N      \n"
+                        + "\n"
+                        + " ------ATOMNAMES------   ATOM TYPES   I        J\n"
+                        + "   I          J            I    J   CHARGE   CHARGE   DISTANCE    \n"
+                        + " ----------------------------------------------------------------------------------------");
+            }
             return calculateEnergy(iAtom, jAtom, dielectricConstant, nonBondedInteraction.get(atoms));
         } else {
             return calculateEnergy(iAtom, jAtom, dielectricConstant, false);
@@ -116,11 +130,16 @@ public class MMFF94ElectrostaticComponent extends EnergyComponent {
         Objects.requireNonNull(forceField);
         double qI = iAtom.getCharge();
         double qJ = jAtom.getCharge();
-        double electrostaticEnergy = 332.0716 * qI * qJ / (dielectricConstant * (iAtom.getPoint3d().distance(jAtom.getPoint3d()) + 0.05));
+        double distance = iAtom.getPoint3d().distance(jAtom.getPoint3d());
+        double electrostaticEnergy = 332.0716 * qI * qJ / (dielectricConstant * (distance + 0.05));
         if (iAtom.getContainer() == jAtom.getContainer() && separatedBy3Bonds) {
             electrostaticEnergy *= 0.75;
         }
-        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(electrostaticEnergy, forceField.getEnergyUnit());
+        electrostaticEnergy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(electrostaticEnergy, forceField.getEnergyUnit());
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("%s #%d\t%s #%d\t%d\t%d\t%.3f\t%.3f\t%.3f".formatted(iAtom.getSymbol(), iAtom.getIndex(), jAtom.getSymbol(), jAtom.getIndex(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), iAtom.getCharge(), jAtom.getCharge(), distance));
+        }
+        return electrostaticEnergy;
     }
 
 }

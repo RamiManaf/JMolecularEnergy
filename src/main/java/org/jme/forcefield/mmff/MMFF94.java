@@ -55,7 +55,7 @@ import org.openscience.cdk.ringsearch.RingSearch;
  * @author Rami Manaf Abdullah
  */
 public class MMFF94 extends ForceField {
-
+    
     static final String MMFF94_TYPE = "mmff.type";
     static final String MMFF94_RINGS = "mmff.rings";
     static final String MMFF94_RINGS_ISOLATED = "mmff.rings.isolated";
@@ -69,7 +69,7 @@ public class MMFF94 extends ForceField {
     static final String MMFF94_OUT_OF_PLANE = "mmff.outOfPlane";
     static final String MMFF94_TORSION = "mmff.torsion";
     private static final Logger LOGGER = Logger.getLogger(MMFF94.class.getName());
-
+    
     private final Mmff mmff = new Mmff();
     private MMFF94Parameters mmffParameters;
     private boolean mmff94s;
@@ -95,7 +95,7 @@ public class MMFF94 extends ForceField {
             LOGGER.log(Level.SEVERE, "Could not load MMFF94 parameter files", ex);
             throw new RuntimeException(ex);
         }
-        for(EnergyComponent component : Arrays.asList(bondStretchingComponent, stretchBendComponent, angleBendingComponent, outOfPlaneComponent, torsionComponent, vdwComponent, electrostaticComponent)){
+        for (EnergyComponent component : Arrays.asList(bondStretchingComponent, stretchBendComponent, angleBendingComponent, outOfPlaneComponent, torsionComponent, vdwComponent, electrostaticComponent)) {
             addEnergyComponent(component);
         }
     }
@@ -139,12 +139,16 @@ public class MMFF94 extends ForceField {
         calculateFormalCharge(atomContainer);
         calculatePartialCharge(atomContainer);
         if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Atom Container:\t" + atomContainer.getTitle());
+        }
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.fine("Name\tType\tCharge");
             for (IAtom atom : atomContainer.atoms()) {
-                LOGGER.fine(atom.getAtomTypeName() + ":\t" + atom.getCharge());
+                LOGGER.fine("%s #%d\t%d\t%.3f".formatted(atom.getAtomTypeName(), atom.getIndex() + 1, atom.getProperty(MMFF94_TYPE), atom.getCharge()));
             }
         }
         assignBondParameters(atomContainer);
-
+        
         HashMap<List<IAtom>, Boolean> nonBondedInteraction = new HashMap<>();
         HashMap<List<IAtom>, Float[]> angleBending = new HashMap<>();
         HashMap<List<IAtom>, Float[]> stretchBend = new HashMap<>();
@@ -213,7 +217,7 @@ public class MMFF94 extends ForceField {
         atomContainer.setProperty(MMFF94_OUT_OF_PLANE, outOfPlane);
         atomContainer.setProperty(MMFF94_TORSION, torsion);
     }
-
+    
     private void assignBondParameters(IAtomContainer atomContainer) {
         for (IBond bond : atomContainer.bonds()) {
             IAtom iAtom, jAtom;
@@ -249,7 +253,7 @@ public class MMFF94 extends ForceField {
             }
         }
     }
-
+    
     private Float[] findOutOfPlaneParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom) {
         int[] ikl = new int[3];
         ikl[0] = iAtom.getProperty(MMFF94_TYPE);
@@ -281,7 +285,7 @@ public class MMFF94 extends ForceField {
             equivalentIndex++;
         }
     }
-
+    
     private MMFF94Parameters.StretchParameters calculateEmpiricalStretchParameters(IAtom iAtom, IAtom jAtom) {
         int atomicNum1, atomicNum2;
         if (iAtom.getAtomicNumber() <= jAtom.getAtomicNumber()) {
@@ -326,7 +330,7 @@ public class MMFF94 extends ForceField {
         double c = (((atomicNum1 == 1) || (atomicNum2 == 1)) ? 0.050 : 0.085);
         double n = 1.4;
         float[] r0_i = {radiiElectronegativityParameters[0][1], radiiElectronegativityParameters[1][1]};
-
+        
         float r0 = (float) (r0_i[0] + r0_i[1] - c * Math.pow(Math.abs(radiiElectronegativityParameters[0][2] - radiiElectronegativityParameters[1][2]), n));
         float kb;
         if (mmffBndkParams != null) {
@@ -335,10 +339,10 @@ public class MMFF94 extends ForceField {
             Float[] HerschbachLaurieParameters = findHerschbachLaurieParameters(iAtom, jAtom);
             kb = (float) Math.pow(10.0, -(r0 - HerschbachLaurieParameters[2]) / HerschbachLaurieParameters[3]);
         }
-
+        
         return new MMFF94Parameters.StretchParameters(findBondType(iAtom, jAtom), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kb, r0);
     }
-
+    
     private Float[] findHerschbachLaurieParameters(IAtom iAtom, IAtom jAtom) {
         int row1 = getHerschbachLauriePeriodicTableRow(iAtom);
         int row2 = getHerschbachLauriePeriodicTableRow(jAtom);
@@ -362,7 +366,7 @@ public class MMFF94 extends ForceField {
         }
         throw new NullPointerException(String.format("could not find Herschbach-Laurie parameters for %s-%s bond", iAtom.getAtomTypeName(), jAtom.getAtomTypeName()));
     }
-
+    
     static void checkParametersAssigned(IAtom iAtom) {
         if (iAtom.getProperty(MMFF94_TYPE) == null) {
             throw new RuntimeException("MMFF94 parameters need to be assigned first");
@@ -384,6 +388,9 @@ public class MMFF94 extends ForceField {
         double energy = 0;
         for (EnergyComponent energyComponent : components) {
             energy += energyComponent.calculateEnergy(atomContainer);
+        }
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Total Energy = \t%.5f".formatted(energy));
         }
         return energy;
     }
@@ -550,11 +557,11 @@ public class MMFF94 extends ForceField {
                     iAtom.setProperty(MMFF94_FORMAL_CHARGE, -1d);
                     break;
                 }
-
+                
             }
         }
     }
-
+    
     private void calculatePartialCharge(IAtomContainer container) {
         for (IAtom iAtom : container.atoms()) {
             double q0 = iAtom.getProperty(MMFF94_FORMAL_CHARGE);
@@ -799,7 +806,7 @@ public class MMFF94 extends ForceField {
             equivalentIndex++;
         }
     }
-
+    
     private float[] findTorsionEmpiricalParamters(IAtom iAtom) {
         for (float[] torsionEmpiricalParamter : mmffParameters.torsionEmpiricalParamters) {
             if (((int) torsionEmpiricalParamter[0]) == iAtom.getAtomicNumber()) {
@@ -808,7 +815,7 @@ public class MMFF94 extends ForceField {
         }
         throw new RuntimeException("no empirical torsion paramters were found for " + iAtom.getAtomTypeName());
     }
-
+    
     private int findBondType(IAtom iAtom, IAtom jAtom) {
         IBond bond = iAtom.getContainer().getBond(iAtom, jAtom);
         Boolean aromaticBond = bond.<Boolean>getProperty("mmff.arom");
@@ -825,7 +832,7 @@ public class MMFF94 extends ForceField {
         }
         return 0;
     }
-
+    
     private int findAngleType(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
         int bondType = findBondType(iAtom, jAtom) + findBondType(jAtom, kAtom);
         if (iAtom.isInRing() && jAtom.isInRing() && kAtom.isInRing()) {
@@ -843,7 +850,7 @@ public class MMFF94 extends ForceField {
         }
         return bondType;
     }
-
+    
     private int findAtomTypeEquivalence(int typeName, int index) {
         Integer[] equivalentTypes = mmffParameters.atomTypeEquivalenceParameters.get(typeName - (typeName >= 87 ? 5 : 1));
         if (equivalentTypes == null) {
@@ -853,7 +860,7 @@ public class MMFF94 extends ForceField {
         }
         return equivalentTypes[index];
     }
-
+    
     private Float[] findAngleBendingParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
         int i = iAtom.getProperty(MMFF94_TYPE);
         int j = jAtom.getProperty(MMFF94_TYPE);
@@ -888,7 +895,7 @@ public class MMFF94 extends ForceField {
             equivalentIndex++;
         }
     }
-
+    
     private Float[] calculateEmpiricalAngleBendingParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom, int angleType, Float idealAngle) {
         Float[] parameters = new Float[6];
         parameters[0] = (float) angleType;
@@ -968,7 +975,7 @@ public class MMFF94 extends ForceField {
         parameters[4] = (float) (beta * Zi * Cj * Zk / ((rIJ + rJK) * Math.pow(Math.toRadians(parameters[5]), 2) * Math.exp(2 * D)));
         return parameters;
     }
-
+    
     private Float[] findStretchBendParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
         int i = iAtom.getProperty(MMFF94_TYPE);
         int j = jAtom.getProperty(MMFF94_TYPE);
@@ -989,7 +996,7 @@ public class MMFF94 extends ForceField {
                 stretchBendType = ((ijBondType != 0 || (ijBondType == jkBondType)) ? 1 : 2);
                 break;
             }
-
+            
             case 2: {
                 stretchBendType = 3;
                 break;
@@ -998,27 +1005,27 @@ public class MMFF94 extends ForceField {
                 stretchBendType = 4;
                 break;
             }
-
+            
             case 3: {
                 stretchBendType = 5;
                 break;
             }
-
+            
             case 5: {
                 stretchBendType = ((ijBondType != 0 || (ijBondType == jkBondType)) ? 6 : 7);
                 break;
             }
-
+            
             case 6: {
                 stretchBendType = 8;
                 break;
             }
-
+            
             case 7: {
                 stretchBendType = ((ijBondType != 0 || (ijBondType == jkBondType)) ? 9 : 10);
                 break;
             }
-
+            
             case 8: {
                 stretchBendType = 11;
                 break;
@@ -1049,7 +1056,7 @@ public class MMFF94 extends ForceField {
         }
         throw new RuntimeException(String.format("could not find or generate stretch-bend parameters for %s-%s-%s", i, j, k));
     }
-
+    
     private int getPeriodicTableRow(IAtom atom) {
         if (atom.getAtomicNumber() <= 2) {
             return 0;
@@ -1067,7 +1074,7 @@ public class MMFF94 extends ForceField {
             return 6;
         }
     }
-
+    
     private int getHerschbachLauriePeriodicTableRow(IAtom atom) {
         int atomicNumber = atom.getAtomicNumber();
         if (atomicNumber == 2) {
@@ -1098,21 +1105,21 @@ public class MMFF94 extends ForceField {
         } else if (n == 0) {
             return new boolean[]{atom1.equals(atom2), !atom1.equals(atom2)};
         }
-
+        
         HashSet<IAtom> searched = new HashSet<>();
         Queue<IAtom> queue = new LinkedList<>();
         queue.add(atom1);
         searched.add(atom1);
-
+        
         int depth = 0;
-
+        
         while (!queue.isEmpty() && depth < n) {
             int levelSize = queue.size();
             depth++;
-
+            
             for (int i = 0; i < levelSize; i++) {
                 IAtom currentAtom = queue.poll();
-
+                
                 for (IBond bond : currentAtom.bonds()) {
                     IAtom neighbor = bond.getOther(currentAtom);
                     if (neighbor.equals(atom2)) {
@@ -1124,14 +1131,14 @@ public class MMFF94 extends ForceField {
                 }
             }
         }
-
+        
         return new boolean[]{false, true}; // If we exit the loop, atom2 was not found within n bonds.
     }
-
+    
     private static int binarySearch(List<Float[]> array, int keyIndex, float key) {
         int low = 0;
         int high = array.size() - 1;
-
+        
         while (low <= high) {
             int mid = low + (high - low) / 2;
             float midValue = array.get(mid)[keyIndex];
@@ -1149,5 +1156,5 @@ public class MMFF94 extends ForceField {
         }
         return -1;  // key not found.
     }
-
+    
 }

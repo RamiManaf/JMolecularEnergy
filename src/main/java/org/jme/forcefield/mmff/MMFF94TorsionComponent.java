@@ -58,15 +58,21 @@ public class MMFF94TorsionComponent extends EnergyComponent {
         Map<List<IAtom>, Float[]> torsion = ((Map<List<IAtom>, Float[]>) atomContainer.getProperty(MMFF94.MMFF94_TORSION));
         Objects.requireNonNull(torsion, "MMFF94 parameters need to be assigned first");
         double totalEnergy = 0;
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("    T O R S I O N A L    \n"
+                    + "\n"
+                    + " --------------ATOMS--------------  ---ATOM TYPES---   FF     TORSION    STERIC    --FORCE CONSTANTS--\n"
+                    + "  I       J          K       L        I   J   K   L   CLASS    ANGLE     ENERGY     V1      V2      V3\n"
+                    + " ------------------------------------------------------------------------------------------------------");
+        }
         for (Map.Entry<List<IAtom>, Float[]> entry : torsion.entrySet()) {
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), atoms.get(3), entry.getValue());
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.fine(String.format("Torsion:\t%d-%d-%d-%d\t%f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), atoms.get(3).getProperty(MMFF94_TYPE), energy));
-            }
             totalEnergy += energy;
         };
-        LOGGER.fine("total torsion:\t" + totalEnergy);
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Total Torsion Strain Energy: =\t%.5f\n".formatted(totalEnergy));
+        }
         return totalEnergy;
 
     }
@@ -87,6 +93,13 @@ public class MMFF94TorsionComponent extends EnergyComponent {
         }
         checkParametersAssigned(iAtom);
         Float[] torsionParameters = ((Map<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_TORSION)).get(Arrays.asList(iAtom, jAtom, kAtom, lAtom));
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("    T O R S I O N A L    \n"
+                    +"\n"
+                    + " --------------ATOMS--------------  ---ATOM TYPES---   FF     TORSION    STERIC    --FORCE CONSTANTS--\n"
+                    + "  I       J          K       L        I   J   K   L   CLASS    ANGLE     ENERGY     V1      V2      V3\n"
+                    + " ------------------------------------------------------------------------------------------------------");
+        }
         return calculateEnergy(iAtom, jAtom, kAtom, lAtom, torsionParameters);
     }
 
@@ -103,7 +116,11 @@ public class MMFF94TorsionComponent extends EnergyComponent {
         }
         double torsionAngle = GeometryUtils.calculateTorsionAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d(), lAtom.getPoint3d());//in radians
         double energy = 0.5 * (torsionParameters[5] * (1 + Math.cos(torsionAngle)) + torsionParameters[6] * (1 - Math.cos(2 * torsionAngle)) + torsionParameters[7] * (1 + Math.cos(3 * torsionAngle)));
-        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer(String.format("%s\t%s #%d\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f", iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex() + 1, kAtom.getSymbol(), kAtom.getIndex() + 1, lAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), lAtom.getProperty(MMFF94_TYPE), torsionParameters[0].intValue(), Math.toDegrees(torsionAngle), energy, torsionParameters[5], torsionParameters[6], torsionParameters[7]));
+        }
+        return energy;
     }
 
 }

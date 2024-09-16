@@ -60,15 +60,21 @@ public class MMFF94StretchBendComponent extends EnergyComponent {
         Map<List<IAtom>, Float[]> stretchBend = ((Map<List<IAtom>, Float[]>) atomContainer.getProperty(MMFF94.MMFF94_STRETCH_BEND));
         Objects.requireNonNull(stretchBend, "MMFF94 parameters need to be assigned first");
         double totalEnergy = 0;
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("      S T R E T C H   B E N D I N G         \n"
+                    + "\n"
+                    + " -------ATOMS-------  -ATOM TYPES-    FF     VALENCE      DELTA      DELTA     STRAIN      F CON \n"
+                    + "  I       J       K     I    J    K  CLASS    ANGLE       ANGLE      R(I,J)    ENERGY       I-J\n"
+                    + " -------------------------------------------------------------------------------------------------");
+        }
         for (Map.Entry<List<IAtom>, Float[]> entry : stretchBend.entrySet()) {
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), angleBending.get(atoms), entry.getValue());
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.fine(String.format("Stretch-Bend:\t%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), energy));
-            }
             totalEnergy += energy;
         };
-        LOGGER.fine("total stretch-bend:\t" + totalEnergy);
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Total Stretch-Bend Strain Energy =\t%.5f\n".formatted(totalEnergy));
+        }
         return totalEnergy;
     }
 
@@ -87,6 +93,13 @@ public class MMFF94StretchBendComponent extends EnergyComponent {
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k");
         }
         checkParametersAssigned(iAtom);
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("      S T R E T C H   B E N D I N G         \n"
+                    + "\n"
+                    + " -------ATOMS-------  -ATOM TYPES-    FF     VALENCE      DELTA      DELTA     STRAIN      F CON \n"
+                    + "  I       J       K     I    J    K  CLASS    ANGLE       ANGLE      R(I,J)    ENERGY       I-J\n"
+                    + " -------------------------------------------------------------------------------------------------");
+        }
         Float[] angleBendingParameters = ((Map<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_ANGLE_BENDING)).get(Arrays.asList(iAtom, jAtom, kAtom));
         Float[] stretchBendParameters = ((Map<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_STRETCH_BEND)).get(Arrays.asList(iAtom, jAtom, kAtom));
         return calculateEnergy(iAtom, jAtom, kAtom, angleBendingParameters, stretchBendParameters);
@@ -97,13 +110,18 @@ public class MMFF94StretchBendComponent extends EnergyComponent {
         if (jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES).ideallyLinear) {
             return 0;
         }
-        double deltaAngle = (GeometryUtils.calculateAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) * 180 / Math.PI) - angleBendingParameters[5];
+        double angle = (GeometryUtils.calculateAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d()) * 180 / Math.PI);
+        double deltaAngle = angle - angleBendingParameters[5];
         MMFF94Parameters.StretchParameters ijStretch = iAtom.getContainer().getBond(iAtom, jAtom).<MMFF94Parameters.StretchParameters>getProperty(MMFF94_PARAMETER_STRETCH);
         MMFF94Parameters.StretchParameters jkStretch = iAtom.getContainer().getBond(jAtom, kAtom).<MMFF94Parameters.StretchParameters>getProperty(MMFF94_PARAMETER_STRETCH);
         double deltaRij = iAtom.getPoint3d().distance(jAtom.getPoint3d()) - ijStretch.r0;
         double deltaRjk = jAtom.getPoint3d().distance(kAtom.getPoint3d()) - jkStretch.r0;
         double energy = 2.51210 * (stretchBendParameters[4] * deltaRij + stretchBendParameters[5] * deltaRjk) * deltaAngle;
-        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("%s\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex(), kAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), stretchBendParameters[0].intValue(), angle, deltaAngle, deltaRij, energy, stretchBendParameters[4]));
+        }
+        return energy;
     }
 
 }

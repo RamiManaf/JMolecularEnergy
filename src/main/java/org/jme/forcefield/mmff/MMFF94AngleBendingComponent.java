@@ -58,15 +58,21 @@ public class MMFF94AngleBendingComponent extends EnergyComponent {
         Map<List<IAtom>, Float[]> angleBending = ((Map<List<IAtom>, Float[]>) atomContainer.getProperty(MMFF94.MMFF94_ANGLE_BENDING));
         Objects.requireNonNull(angleBending, "MMFF94 parameters need to be assigned first");
         double totalEnergy = 0;
-        for(Map.Entry<List<IAtom>, Float[]> entry : angleBending.entrySet()){
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("      A N G L E   B E N D I N G         \n"
+                    + "\n"
+                    + " -------ATOMS-------   -ATOM TYPES-   FF     VALENCE      IDEAL                 STRAIN     FORCE\n"
+                    + "  I       J       K     I    J    K  CLASS    ANGLE       ANGLE      DIFF.      ENERGY   CONSTANT\n"
+                    + " -------------------------------------------------------------------------------------------------");
+        }
+        for (Map.Entry<List<IAtom>, Float[]> entry : angleBending.entrySet()) {
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), entry.getValue());
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.fine(String.format("Bending:\t%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), energy));
-            }
-            totalEnergy+=energy;
+            totalEnergy += energy;
         }
-        LOGGER.fine("total angle bend:\t" + totalEnergy);
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Total Angle Bending Energy =\t%.5f\n".formatted(totalEnergy));
+        }
         return totalEnergy;
     }
 
@@ -85,6 +91,13 @@ public class MMFF94AngleBendingComponent extends EnergyComponent {
         }
         checkParametersAssigned(iAtom);
         Float[] parameters = ((Map<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_ANGLE_BENDING)).get(Arrays.asList(iAtom, jAtom, kAtom));
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("      A N G L E   B E N D I N G         \n"
+                    + "\n"
+                    + " -------ATOMS-------   -ATOM TYPES-   FF     VALENCE      IDEAL                 STRAIN     FORCE\n"
+                    + "  I       J       K     I    J    K  CLASS    ANGLE       ANGLE      DIFF.      ENERGY   CONSTANT\n"
+                    + " -------------------------------------------------------------------------------------------------");
+        }
         return calculateEnergy(iAtom, jAtom, kAtom, parameters);
     }
 
@@ -98,7 +111,11 @@ public class MMFF94AngleBendingComponent extends EnergyComponent {
         } else {
             energy = Math.toRadians(Math.toRadians(143.9325)) * parameters[4] * .5 * deltaAngle * deltaAngle * (1 - 0.006981317 * deltaAngle);
         }
-        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("%s\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f".formatted(iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex(), kAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), parameters[0].intValue(), angle, parameters[5], deltaAngle, energy, parameters[4]));
+        }
+        return energy;
     }
 
 }

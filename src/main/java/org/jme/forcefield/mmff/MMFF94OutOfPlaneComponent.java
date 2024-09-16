@@ -58,15 +58,21 @@ public class MMFF94OutOfPlaneComponent extends EnergyComponent {
         Map<List<IAtom>, Float[]> outOfPlane = ((Map<List<IAtom>, Float[]>) atomContainer.getProperty(MMFF94.MMFF94_OUT_OF_PLANE));
         Objects.requireNonNull(outOfPlane, "MMFF94 parameters need to be assigned first");
         double totalEnergy = 0;
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer(" O U T - O F - P L A N E    B E N D I N G       \n"
+                    + "                                                  WILSON \n"
+                    + " -----------ATOMS-----------  --ATOM TYPES--   OUT-OF-PLANE   STERIC      FORCE\n"
+                    + "  I -- J -- K ... L            I  J  K  L         ANGLE       ENERGY    CONSTANT\n"
+                    + " --------------------------------------------------------------------------------");
+        }
         for (Map.Entry<List<IAtom>, Float[]> entry : outOfPlane.entrySet()) {
             List<IAtom> atoms = entry.getKey();
             double energy = calculateEnergy(atoms.get(0), atoms.get(1), atoms.get(2), atoms.get(3), entry.getValue());
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.fine(String.format("OOP:\t%d-%d-%d-%d\t%.3f", atoms.get(0).getProperty(MMFF94_TYPE), atoms.get(1).getProperty(MMFF94_TYPE), atoms.get(2).getProperty(MMFF94_TYPE), atoms.get(3).getProperty(MMFF94_TYPE), energy));
-            }
             totalEnergy += energy;
         }
-        LOGGER.fine("total OOP:\t" + totalEnergy);
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Total Out-of-Plane Strain Energy =\t%.5f\n".formatted(totalEnergy));
+        }
         return totalEnergy;
     }
 
@@ -84,6 +90,13 @@ public class MMFF94OutOfPlaneComponent extends EnergyComponent {
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k/l where l is bonded to j");
         }
         checkParametersAssigned(iAtom);
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer(" O U T - O F - P L A N E    B E N D I N G       \n"
+                    + "                                                  WILSON \n"
+                    + " -----------ATOMS-----------  --ATOM TYPES--   OUT-OF-PLANE   STERIC      FORCE\n"
+                    + "  I -- J -- K ... L            I  J  K  L         ANGLE       ENERGY    CONSTANT\n"
+                    + " --------------------------------------------------------------------------------");
+        }
         Float[] parameters = ((HashMap<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_OUT_OF_PLANE)).get(Arrays.asList(iAtom, jAtom, kAtom, lAtom));
         return calculateEnergy(iAtom, jAtom, kAtom, lAtom, parameters);
     }
@@ -95,6 +108,10 @@ public class MMFF94OutOfPlaneComponent extends EnergyComponent {
         }
         double angle = GeometryUtils.calculateOutOfPlaneAngle(iAtom.getPoint3d(), jAtom.getPoint3d(), kAtom.getPoint3d(), lAtom.getPoint3d()) * 180 / Math.PI;
         double energy = Math.toRadians(Math.toRadians(143.9325)) * .5 * parameters[4] * angle * angle;
-        return ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.finer("%s\t%s #%d\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex(), kAtom.getSymbol(), kAtom.getIndex(), lAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), lAtom.getProperty(MMFF94_TYPE), angle, energy, parameters[4]));
+        }
+        return energy;
     }
 }
