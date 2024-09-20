@@ -24,7 +24,6 @@
 package org.jme.forcefield.mmff;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -32,15 +31,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openscience.cdk.ChemFile;
-import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.aromaticity.Kekulization;
-import org.openscience.cdk.config.AtomTypeFactory;
 import org.openscience.cdk.config.atomtypes.OWLAtomTypeMappingReader;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
@@ -50,13 +44,10 @@ import org.openscience.cdk.io.Mol2Reader;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
 /**
- * based on http://ccl.net/cca/data/MMFF94/index.shtml validation suites known
- * issues are
- * <ul>
- * <li>issue in MMFF aromatization in 420-GIGCEE, 544-KOCWUU, 551-KOJGOF from
- * MMFF94 test suite. one of the rings is aromatic but that wasn't
- * detected.</li>
- * </ul>
+ * based on validation suites:
+ * https://ccl.net/cca/data/MMFF94/index.shtml
+ * https://server.ccl.net/cca/data/MMFF94s/index.shtml
+ * 
  *
  * @author Rami Manaf Abdullah
  */
@@ -65,21 +56,14 @@ public class MMFF94Test {
     private static MMFF94 mmff94 = new MMFF94(false);
     private static MMFF94 mmff94s = new MMFF94(true);
     private static Map<String, String> sybylToCdk = new HashMap<>();
-    static long m;
 
     @BeforeClass
     public static void init() {
-        m = System.nanoTime();
         System.setProperty("cdk.logging.level", "error");
         Map<String, String> map = new OWLAtomTypeMappingReader(new InputStreamReader(MMFF94Test.class.getResourceAsStream("/org/openscience/cdk/dict/data/cdk-sybyl-mappings.owl"))).readAtomTypeMappings();
         for (Map.Entry<String, String> entry : map.entrySet()) {
             sybylToCdk.put(entry.getValue(), entry.getKey());
         }
-    }
-
-    @AfterClass
-    public static void test() {
-        System.out.println(System.nanoTime() - m);
     }
 
     @Test
@@ -94,12 +78,7 @@ public class MMFF94Test {
             IAtomContainer container = containers.get(i);
             double energy = calculateMMFF94Energy(container, mmff94);
             total++;
-            if (Math.abs(energyValidation.get(i) - energy) > .1) {
-                if (i == 420 || i == 544 || i == 551) {
-                    //known issue.. skip
-                    Kekulization.kekulize(container);
-                    continue;
-                }
+            if (Math.abs(energyValidation.get(i) - energy) > .01) {
                 System.out.println(i + "-" + container.getTitle() + ":\tExpected:\t" + energyValidation.get(i) + "\tFound:\t" + energy);
                 error += Math.abs(energyValidation.get(i) - energy);
                 n++;
@@ -163,11 +142,7 @@ public class MMFF94Test {
             IAtomContainer container = containers.get(i);
             double energy = calculateMMFF94Energy(container, mmff94s);
             total++;
-            if (Math.abs(energyValidation.get(i) - energy) > .1) {
-                if (i == 210) {
-                    //known issue.. skip
-                    continue;
-                }
+            if (Math.abs(energyValidation.get(i) - energy) > .01) {
                 System.out.println(i + "-" + container.getTitle() + ":\tExpected:\t" + energyValidation.get(i) + "\tFound:\t" + energy);
                 error += Math.abs(energyValidation.get(i) - energy);
                 n++;

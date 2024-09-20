@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import org.openscience.cdk.forcefield.mmff.Mmff;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,7 +54,7 @@ import org.openscience.cdk.ringsearch.RingSearch;
  * @author Rami Manaf Abdullah
  */
 public class MMFF94 extends ForceField {
-    
+
     static final String MMFF94_TYPE = "mmff.type";
     static final String MMFF94_RINGS = "mmff.rings";
     static final String MMFF94_RINGS_ISOLATED = "mmff.rings.isolated";
@@ -69,7 +68,7 @@ public class MMFF94 extends ForceField {
     static final String MMFF94_OUT_OF_PLANE = "mmff.outOfPlane";
     static final String MMFF94_TORSION = "mmff.torsion";
     private static final Logger LOGGER = Logger.getLogger(MMFF94.class.getName());
-    
+
     private final Mmff mmff = new Mmff();
     private MMFF94Parameters mmffParameters;
     private boolean mmff94s;
@@ -148,7 +147,7 @@ public class MMFF94 extends ForceField {
             }
         }
         assignBondParameters(atomContainer);
-        
+
         HashMap<List<IAtom>, Boolean> nonBondedInteraction = new HashMap<>();
         HashMap<List<IAtom>, Float[]> angleBending = new HashMap<>();
         HashMap<List<IAtom>, Float[]> stretchBend = new HashMap<>();
@@ -217,7 +216,7 @@ public class MMFF94 extends ForceField {
         atomContainer.setProperty(MMFF94_OUT_OF_PLANE, outOfPlane);
         atomContainer.setProperty(MMFF94_TORSION, torsion);
     }
-    
+
     private void assignBondParameters(IAtomContainer atomContainer) {
         for (IBond bond : atomContainer.bonds()) {
             IAtom iAtom, jAtom;
@@ -253,7 +252,7 @@ public class MMFF94 extends ForceField {
             }
         }
     }
-    
+
     private Float[] findOutOfPlaneParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom) {
         int[] ikl = new int[3];
         ikl[0] = iAtom.getProperty(MMFF94_TYPE);
@@ -285,7 +284,7 @@ public class MMFF94 extends ForceField {
             equivalentIndex++;
         }
     }
-    
+
     private MMFF94Parameters.StretchParameters calculateEmpiricalStretchParameters(IAtom iAtom, IAtom jAtom) {
         int atomicNum1, atomicNum2;
         if (iAtom.getAtomicNumber() <= jAtom.getAtomicNumber()) {
@@ -330,7 +329,7 @@ public class MMFF94 extends ForceField {
         double c = (((atomicNum1 == 1) || (atomicNum2 == 1)) ? 0.050 : 0.085);
         double n = 1.4;
         float[] r0_i = {radiiElectronegativityParameters[0][1], radiiElectronegativityParameters[1][1]};
-        
+
         float r0 = (float) (r0_i[0] + r0_i[1] - c * Math.pow(Math.abs(radiiElectronegativityParameters[0][2] - radiiElectronegativityParameters[1][2]), n));
         float kb;
         if (mmffBndkParams != null) {
@@ -339,10 +338,10 @@ public class MMFF94 extends ForceField {
             Float[] HerschbachLaurieParameters = findHerschbachLaurieParameters(iAtom, jAtom);
             kb = (float) Math.pow(10.0, -(r0 - HerschbachLaurieParameters[2]) / HerschbachLaurieParameters[3]);
         }
-        
+
         return new MMFF94Parameters.StretchParameters(findBondType(iAtom, jAtom), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kb, r0);
     }
-    
+
     private Float[] findHerschbachLaurieParameters(IAtom iAtom, IAtom jAtom) {
         int row1 = getHerschbachLauriePeriodicTableRow(iAtom);
         int row2 = getHerschbachLauriePeriodicTableRow(jAtom);
@@ -366,7 +365,7 @@ public class MMFF94 extends ForceField {
         }
         throw new NullPointerException(String.format("could not find Herschbach-Laurie parameters for %s-%s bond", iAtom.getAtomTypeName(), jAtom.getAtomTypeName()));
     }
-    
+
     static void checkParametersAssigned(IAtom iAtom) {
         if (iAtom.getProperty(MMFF94_TYPE) == null) {
             throw new RuntimeException("MMFF94 parameters need to be assigned first");
@@ -557,11 +556,11 @@ public class MMFF94 extends ForceField {
                     iAtom.setProperty(MMFF94_FORMAL_CHARGE, -1d);
                     break;
                 }
-                
+
             }
         }
     }
-    
+
     private void calculatePartialCharge(IAtomContainer container) {
         for (IAtom iAtom : container.atoms()) {
             double q0 = iAtom.getProperty(MMFF94_FORMAL_CHARGE);
@@ -634,6 +633,7 @@ public class MMFF94 extends ForceField {
         int jkBondType = findBondType(jAtom, kAtom);
         int klBondType = findBondType(kAtom, lAtom);
         int torsionType = jkBondType;
+        int oldTorsionType = 0;
         if (jkBondType == 0 && jAtom.getBond(kAtom).getOrder().equals(IBond.Order.SINGLE) && (ijBondType == 1 || klBondType == 1)) {
             torsionType = 2;
         }
@@ -643,9 +643,11 @@ public class MMFF94 extends ForceField {
             for (IAtomContainer ring : irings.atomContainers()) {
                 if (ring.contains(jAtom) && ring.contains(kAtom) && ring.contains(lAtom)) {
                     if (ring.getAtomCount() == 4) {
+                        oldTorsionType = torsionType;
                         torsionType = 4;
                         break;
                     } else if (ring.getAtomCount() == 5 && (i == 1 || j == 1 || k == 1 || l == 1)) {
+                        oldTorsionType = torsionType;
                         torsionType = 5;
                         break;
                     }
@@ -654,7 +656,32 @@ public class MMFF94 extends ForceField {
         }
         int equivalentIndex = 0, iIndex = 0, lIndex = 0;
         List<Float[]> torsionParameters = mmff94s ? mmffParameters.torsionParametersStatic : mmffParameters.torsionParameters;
-        while (true) {
+        Float[] foundTorsionParameters = null;
+        boolean usedOldTorsionType = false;
+        while ((equivalentIndex < 5 && foundTorsionParameters == null && torsionType != oldTorsionType) 
+                || (equivalentIndex < 4 && foundTorsionParameters == null) 
+                || (equivalentIndex == 4 && torsionType == 5 && oldTorsionType != 0)) {
+            if (equivalentIndex ==4 && !usedOldTorsionType) {
+                usedOldTorsionType = true;
+                torsionType = oldTorsionType;
+                equivalentIndex = 0;
+                foundTorsionParameters = null;
+                i = iAtom.getProperty(MMFF94_TYPE);
+                l = lAtom.getProperty(MMFF94_TYPE);
+            }
+            if (equivalentIndex != 0) {
+                iIndex = equivalentIndex;
+                lIndex = equivalentIndex;
+                if (equivalentIndex == 1) {
+                    iIndex = 1;
+                    lIndex = 3;
+                } else if (equivalentIndex == 2) {
+                    iIndex = 3;
+                    lIndex = 1;
+                }
+                i = findAtomTypeEquivalence(iAtom.getProperty(MMFF94_TYPE), iIndex);
+                l = findAtomTypeEquivalence(lAtom.getProperty(MMFF94_TYPE), lIndex);
+            }
             int index = binarySearch(torsionParameters, 2, j);
             if (index != -1) {
                 for (int z = index; z < torsionParameters.size(); z++) {
@@ -664,149 +691,125 @@ public class MMFF94 extends ForceField {
                     }
                     if (parameters[0] == torsionType && parameters[3] == k) {
                         if (i == parameters[1] && l == parameters[4]) {
-                            return parameters;
+                            foundTorsionParameters = parameters;
+                            break;
                         }
                     }
                 }
             }
-            if (equivalentIndex > 3) {
-                //empirical rules
-                Float[] paramters = new Float[]{(float) torsionType,
-                    ((Integer) iAtom.getProperty(MMFF94_TYPE)).floatValue(),
-                    ((Integer) jAtom.getProperty(MMFF94_TYPE)).floatValue(),
-                    ((Integer) kAtom.getProperty(MMFF94_TYPE)).floatValue(),
-                    ((Integer) lAtom.getProperty(MMFF94_TYPE)).floatValue(), 0f, 0f, 0f};
-                float[] jEmpiricalParamters = findTorsionEmpiricalParamters(jAtom);
-                float[] kEmpiricalParamters = findTorsionEmpiricalParamters(kAtom);
-                MMFF94Parameters.GeometricParameters jGeometricProperties = jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES);
-                MMFF94Parameters.GeometricParameters kGeometricProperties = kAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES);
-                if (jGeometricProperties.ideallyLinear || kGeometricProperties.ideallyLinear) {
-                    //rule (a)
-                    paramters[5] = 0f;
-                    paramters[6] = 0f;
-                    paramters[7] = 0f;
-                    return paramters;
-                } else if (jGeometricProperties.aromatic && kGeometricProperties.aromatic && ((IRingSet) jAtom.getContainer().getProperty(MMFF94_RINGS)).getRings(jAtom).contains(kAtom)) {
-                    //rule (b)
-                    float pi = .3f, beta = 6;
-                    if (!jGeometricProperties.piLonePair && !kGeometricProperties.piLonePair) {
-                        pi = .5f;
-                    }
-                    if ((jGeometricProperties.valence == 3 && kGeometricProperties.valence == 4)
-                            || (jGeometricProperties.valence == 4 && kGeometricProperties.valence == 3)) {
-                        beta = 3;
-                    }
-                    paramters[6] = (float) (beta * pi * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
-                } else if (jAtom.getBond(kAtom).getOrder().equals(IBond.Order.DOUBLE)) {
-                    //rule (c)
-                    float pi = .4f;
-                    if (jGeometricProperties.mltb == 2 && kGeometricProperties.mltb == 2) {
-                        pi = 1;
-                    }
-                    paramters[6] = (float) (6 * pi * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
-                } else if (jGeometricProperties.crd == 4 && kGeometricProperties.crd == 4) {
-                    //rule (d)
-                    paramters[7] = (float) (Math.sqrt(jEmpiricalParamters[2] * kEmpiricalParamters[2]) / ((jGeometricProperties.crd - 1) * (kGeometricProperties.crd - 1)));
-                } else if (jGeometricProperties.crd == 4 && kGeometricProperties.crd != 4 || jGeometricProperties.crd != 4 && kGeometricProperties.crd == 4) {
-                    //rule (e/f)
-                    int nonTetraCoordinate = jGeometricProperties.crd == 4 ? k : j;
-                    MMFF94Parameters.GeometricParameters nonTetraCoordinateGeometricProperties = nonTetraCoordinate == j ? jGeometricProperties : kGeometricProperties;
-                    if (nonTetraCoordinateGeometricProperties.crd == 3
-                            && ((nonTetraCoordinateGeometricProperties.valence == 4
-                            || nonTetraCoordinateGeometricProperties.valence == 34)
-                            || nonTetraCoordinateGeometricProperties.mltb != 0)) {
-                        paramters[5] = 0f;
-                        paramters[6] = 0f;
-                        paramters[7] = 0f;
-                        return paramters;
-                    } else if (nonTetraCoordinateGeometricProperties.crd == 2
-                            && (nonTetraCoordinateGeometricProperties.valence == 3
-                            || nonTetraCoordinateGeometricProperties.mltb != 0)) {
-                        paramters[5] = 0f;
-                        paramters[6] = 0f;
-                        paramters[7] = 0f;
-                        return paramters;
-                    } else {
-                        paramters[7] = (float) (Math.sqrt(jEmpiricalParamters[2] * kEmpiricalParamters[2]) / ((jGeometricProperties.crd - 1) * (kGeometricProperties.crd - 1)));
-                    }
-                } else if ((jAtom.getBond(kAtom).getOrder().equals(IBond.Order.SINGLE) && jGeometricProperties.mltb != 0 && kGeometricProperties.mltb != 0)
-                        || (jGeometricProperties.mltb != 0 && kGeometricProperties.piLonePair)
-                        || (jGeometricProperties.piLonePair && kGeometricProperties.mltb != 0)) {
-                    //rule (g)
-                    //case 1
-                    if (jGeometricProperties.piLonePair && kGeometricProperties.piLonePair) {
-                        paramters[5] = 0f;
-                        paramters[6] = 0f;
-                        paramters[7] = 0f;
-                        return paramters;
-                    } else if (jGeometricProperties.piLonePair && kGeometricProperties.mltb != 0) {
-                        //case 2
-                        float pi = .15f;
-                        if (jGeometricProperties.mltb == 1) {
-                            pi = .5f;
-                        } else if (getPeriodicTableRow(jAtom) == 1 || getPeriodicTableRow(kAtom) == 1) {
-                            //beolong to row 2 in the periodic table
-                            pi = .3f;
-                        }
-                        paramters[6] = (float) (6 * pi * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
-                    } else if (kGeometricProperties.piLonePair && jGeometricProperties.mltb != 0) {
-                        //case 3
-                        float pi = .15f;
-                        if (kGeometricProperties.mltb == 1) {
-                            pi = .5f;
-                        } else if (getPeriodicTableRow(jAtom) == 1 || getPeriodicTableRow(kAtom) == 1) {
-                            //beolong to row 2 in the periodic table
-                            pi = .3f;
-                        }
-                        paramters[6] = (float) (6 * pi * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
-                    } else if ((jGeometricProperties.mltb == 1 || kGeometricProperties.mltb == 1) && (jAtom.getAtomicNumber() != 6 || kAtom.getAtomicNumber() != 6)) {
-                        //case 4
-                        paramters[6] = (float) (6 * .4 * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
-                    } else {
-                        //case 5
-                        paramters[6] = (float) (6 * .15 * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
-                    }
-                } else if ((jAtom.getAtomicNumber() == 8 || jAtom.getAtomicNumber() == 16)
-                        && (kAtom.getAtomicNumber() == 8 || kAtom.getAtomicNumber() == 16)) {
-                    //rule (h)
-                    float WW = jAtom.getAtomicNumber() == 8 ? 2 : 8;
-                    WW *= kAtom.getAtomicNumber() == 8 ? 2 : 8;
-                    paramters[6] = (float) -Math.sqrt(WW);
-                } else {
-                    paramters[7] = (float) Math.sqrt(jEmpiricalParamters[2] * kEmpiricalParamters[2]) / ((jGeometricProperties.crd - 1) * (kGeometricProperties.crd - 1));
-                }
-                return paramters;
-            }
-            if (equivalentIndex == 3 && torsionType == 5) {
-                if (jkBondType == 1) {
-                    torsionType = 1;
-                    equivalentIndex = 0;
-                    i = iAtom.getProperty(MMFF94_TYPE);
-                    k = kAtom.getProperty(MMFF94_TYPE);
-                    continue;
-                } else if (jkBondType == 0 && (ijBondType == 1 || klBondType == 1)) {
-                    torsionType = 2;
-                    equivalentIndex = 0;
-                    i = iAtom.getProperty(MMFF94_TYPE);
-                    k = kAtom.getProperty(MMFF94_TYPE);
-                    continue;
-                }
-            }
-            iIndex = equivalentIndex;
-            lIndex = equivalentIndex;
-            if (equivalentIndex == 1) {
-                iIndex = 1;
-                lIndex = 3;
-            } else if (equivalentIndex == 2) {
-                iIndex = 3;
-                lIndex = 1;
-            }
-            i = findAtomTypeEquivalence(iAtom.getProperty(MMFF94_TYPE), iIndex);
-            l = findAtomTypeEquivalence(lAtom.getProperty(MMFF94_TYPE), lIndex);
             equivalentIndex++;
         }
+        if (foundTorsionParameters != null) {
+            return foundTorsionParameters;
+        }
+        //empirical rules
+        Float[] paramters = new Float[]{(float) torsionType,
+            ((Integer) iAtom.getProperty(MMFF94_TYPE)).floatValue(),
+            ((Integer) jAtom.getProperty(MMFF94_TYPE)).floatValue(),
+            ((Integer) kAtom.getProperty(MMFF94_TYPE)).floatValue(),
+            ((Integer) lAtom.getProperty(MMFF94_TYPE)).floatValue(), 0f, 0f, 0f};
+        float[] jEmpiricalParamters = findTorsionEmpiricalParamters(jAtom);
+        float[] kEmpiricalParamters = findTorsionEmpiricalParamters(kAtom);
+        MMFF94Parameters.GeometricParameters jGeometricProperties = jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES);
+        MMFF94Parameters.GeometricParameters kGeometricProperties = kAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES);
+        if (jGeometricProperties.ideallyLinear || kGeometricProperties.ideallyLinear) {
+            //rule (a)
+            paramters[5] = 0f;
+            paramters[6] = 0f;
+            paramters[7] = 0f;
+            return paramters;
+        } else if (jGeometricProperties.aromatic && kGeometricProperties.aromatic && ((IRingSet) jAtom.getContainer().getProperty(MMFF94_RINGS)).getRings(jAtom).contains(kAtom)) {
+            //rule (b)
+            float pi = .3f, beta = 6;
+            if (!jGeometricProperties.piLonePair && !kGeometricProperties.piLonePair) {
+                pi = .5f;
+            }
+            if ((jGeometricProperties.valence == 3 && kGeometricProperties.valence == 4)
+                    || (jGeometricProperties.valence == 4 && kGeometricProperties.valence == 3)) {
+                beta = 3;
+            }
+            paramters[6] = (float) (beta * pi * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
+        } else if (jAtom.getBond(kAtom).getOrder().equals(IBond.Order.DOUBLE)) {
+            //rule (c)
+            float pi = .4f;
+            if (jGeometricProperties.mltb == 2 && kGeometricProperties.mltb == 2) {
+                pi = 1;
+            }
+            paramters[6] = (float) (6 * pi * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
+        } else if (jGeometricProperties.crd == 4 && kGeometricProperties.crd == 4) {
+            //rule (d)
+            paramters[7] = (float) (Math.sqrt(jEmpiricalParamters[2] * kEmpiricalParamters[2]) / ((jGeometricProperties.crd - 1) * (kGeometricProperties.crd - 1)));
+        } else if (jGeometricProperties.crd == 4 && kGeometricProperties.crd != 4 || jGeometricProperties.crd != 4 && kGeometricProperties.crd == 4) {
+            //rule (e/f)
+            int nonTetraCoordinate = jGeometricProperties.crd == 4 ? k : j;
+            MMFF94Parameters.GeometricParameters nonTetraCoordinateGeometricProperties = nonTetraCoordinate == j ? jGeometricProperties : kGeometricProperties;
+            if (nonTetraCoordinateGeometricProperties.crd == 3
+                    && ((nonTetraCoordinateGeometricProperties.valence == 4
+                    || nonTetraCoordinateGeometricProperties.valence == 34)
+                    || nonTetraCoordinateGeometricProperties.mltb != 0)) {
+                paramters[5] = 0f;
+                paramters[6] = 0f;
+                paramters[7] = 0f;
+                return paramters;
+            } else if (nonTetraCoordinateGeometricProperties.crd == 2
+                    && (nonTetraCoordinateGeometricProperties.valence == 3
+                    || nonTetraCoordinateGeometricProperties.mltb != 0)) {
+                paramters[5] = 0f;
+                paramters[6] = 0f;
+                paramters[7] = 0f;
+                return paramters;
+            } else {
+                paramters[7] = (float) (Math.sqrt(jEmpiricalParamters[2] * kEmpiricalParamters[2]) / ((jGeometricProperties.crd - 1) * (kGeometricProperties.crd - 1)));
+            }
+        } else if ((jAtom.getBond(kAtom).getOrder().equals(IBond.Order.SINGLE) && jGeometricProperties.mltb != 0 && kGeometricProperties.mltb != 0)
+                || (jGeometricProperties.mltb != 0 && kGeometricProperties.piLonePair)
+                || (jGeometricProperties.piLonePair && kGeometricProperties.mltb != 0)) {
+            //rule (g)
+            //case 1
+            if (jGeometricProperties.piLonePair && kGeometricProperties.piLonePair) {
+                paramters[5] = 0f;
+                paramters[6] = 0f;
+                paramters[7] = 0f;
+                return paramters;
+            } else if (jGeometricProperties.piLonePair && kGeometricProperties.mltb != 0) {
+                //case 2
+                float pi = .15f;
+                if (jGeometricProperties.mltb == 1) {
+                    pi = .5f;
+                } else if (getPeriodicTableRow(jAtom) == 1 || getPeriodicTableRow(kAtom) == 1) {
+                    //beolong to row 2 in the periodic table
+                    pi = .3f;
+                }
+                paramters[6] = (float) (6 * pi * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
+            } else if (kGeometricProperties.piLonePair && jGeometricProperties.mltb != 0) {
+                //case 3
+                float pi = .15f;
+                if (kGeometricProperties.mltb == 1) {
+                    pi = .5f;
+                } else if (getPeriodicTableRow(jAtom) == 1 || getPeriodicTableRow(kAtom) == 1) {
+                    //beolong to row 2 in the periodic table
+                    pi = .3f;
+                }
+                paramters[6] = (float) (6 * pi * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
+            } else if ((jGeometricProperties.mltb == 1 || kGeometricProperties.mltb == 1) && (jAtom.getAtomicNumber() != 6 || kAtom.getAtomicNumber() != 6)) {
+                //case 4
+                paramters[6] = (float) (6 * .4 * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
+            } else {
+                //case 5
+                paramters[6] = (float) (6 * .15 * Math.sqrt(jEmpiricalParamters[1] * kEmpiricalParamters[1]));
+            }
+        } else if ((jAtom.getAtomicNumber() == 8 || jAtom.getAtomicNumber() == 16)
+                && (kAtom.getAtomicNumber() == 8 || kAtom.getAtomicNumber() == 16)) {
+            //rule (h)
+            float WW = jAtom.getAtomicNumber() == 8 ? 2 : 8;
+            WW *= kAtom.getAtomicNumber() == 8 ? 2 : 8;
+            paramters[6] = (float) -Math.sqrt(WW);
+        } else {
+            paramters[7] = (float) Math.sqrt(jEmpiricalParamters[2] * kEmpiricalParamters[2]) / ((jGeometricProperties.crd - 1) * (kGeometricProperties.crd - 1));
+        }
+        return paramters;
     }
-    
+
     private float[] findTorsionEmpiricalParamters(IAtom iAtom) {
         for (float[] torsionEmpiricalParamter : mmffParameters.torsionEmpiricalParamters) {
             if (((int) torsionEmpiricalParamter[0]) == iAtom.getAtomicNumber()) {
@@ -815,11 +818,10 @@ public class MMFF94 extends ForceField {
         }
         throw new RuntimeException("no empirical torsion paramters were found for " + iAtom.getAtomTypeName());
     }
-    
+
     private int findBondType(IAtom iAtom, IAtom jAtom) {
         IBond bond = iAtom.getContainer().getBond(iAtom, jAtom);
-        Boolean aromaticBond = bond.<Boolean>getProperty("mmff.arom");
-        if (bond.getOrder().equals(IBond.Order.SINGLE) && (aromaticBond == null || aromaticBond != true)) {
+        if (bond.getOrder().equals(IBond.Order.SINGLE) && !bond.isAromatic()) {
             MMFF94Parameters.GeometricParameters iAtomGeometricProperties = iAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES);
             MMFF94Parameters.GeometricParameters jAtomGeometricProperties = jAtom.<MMFF94Parameters.GeometricParameters>getProperty(MMFF94_PARAMETER_GEOMETRIC_PROPERTIES);
             if (iAtomGeometricProperties.singleBondBetweenMultipleBonds
@@ -832,7 +834,7 @@ public class MMFF94 extends ForceField {
         }
         return 0;
     }
-    
+
     private int findAngleType(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
         int bondType = findBondType(iAtom, jAtom) + findBondType(jAtom, kAtom);
         if (iAtom.isInRing() && jAtom.isInRing() && kAtom.isInRing()) {
@@ -850,7 +852,7 @@ public class MMFF94 extends ForceField {
         }
         return bondType;
     }
-    
+
     private int findAtomTypeEquivalence(int typeName, int index) {
         Integer[] equivalentTypes = mmffParameters.atomTypeEquivalenceParameters.get(typeName - (typeName >= 87 ? 5 : 1));
         if (equivalentTypes == null) {
@@ -860,7 +862,7 @@ public class MMFF94 extends ForceField {
         }
         return equivalentTypes[index];
     }
-    
+
     private Float[] findAngleBendingParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
         int i = iAtom.getProperty(MMFF94_TYPE);
         int j = jAtom.getProperty(MMFF94_TYPE);
@@ -895,7 +897,7 @@ public class MMFF94 extends ForceField {
             equivalentIndex++;
         }
     }
-    
+
     private Float[] calculateEmpiricalAngleBendingParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom, int angleType, Float idealAngle) {
         Float[] parameters = new Float[6];
         parameters[0] = (float) angleType;
@@ -975,7 +977,7 @@ public class MMFF94 extends ForceField {
         parameters[4] = (float) (beta * Zi * Cj * Zk / ((rIJ + rJK) * Math.pow(Math.toRadians(parameters[5]), 2) * Math.exp(2 * D)));
         return parameters;
     }
-    
+
     private Float[] findStretchBendParameters(IAtom iAtom, IAtom jAtom, IAtom kAtom) {
         int i = iAtom.getProperty(MMFF94_TYPE);
         int j = jAtom.getProperty(MMFF94_TYPE);
@@ -996,7 +998,7 @@ public class MMFF94 extends ForceField {
                 stretchBendType = ((ijBondType != 0 || (ijBondType == jkBondType)) ? 1 : 2);
                 break;
             }
-            
+
             case 2: {
                 stretchBendType = 3;
                 break;
@@ -1005,27 +1007,27 @@ public class MMFF94 extends ForceField {
                 stretchBendType = 4;
                 break;
             }
-            
+
             case 3: {
                 stretchBendType = 5;
                 break;
             }
-            
+
             case 5: {
                 stretchBendType = ((ijBondType != 0 || (ijBondType == jkBondType)) ? 6 : 7);
                 break;
             }
-            
+
             case 6: {
                 stretchBendType = 8;
                 break;
             }
-            
+
             case 7: {
                 stretchBendType = ((ijBondType != 0 || (ijBondType == jkBondType)) ? 9 : 10);
                 break;
             }
-            
+
             case 8: {
                 stretchBendType = 11;
                 break;
@@ -1056,7 +1058,7 @@ public class MMFF94 extends ForceField {
         }
         throw new RuntimeException(String.format("could not find or generate stretch-bend parameters for %s-%s-%s", i, j, k));
     }
-    
+
     private int getPeriodicTableRow(IAtom atom) {
         if (atom.getAtomicNumber() <= 2) {
             return 0;
@@ -1074,7 +1076,7 @@ public class MMFF94 extends ForceField {
             return 6;
         }
     }
-    
+
     private int getHerschbachLauriePeriodicTableRow(IAtom atom) {
         int atomicNumber = atom.getAtomicNumber();
         if (atomicNumber == 2) {
@@ -1105,21 +1107,21 @@ public class MMFF94 extends ForceField {
         } else if (n == 0) {
             return new boolean[]{atom1.equals(atom2), !atom1.equals(atom2)};
         }
-        
+
         HashSet<IAtom> searched = new HashSet<>();
         Queue<IAtom> queue = new LinkedList<>();
         queue.add(atom1);
         searched.add(atom1);
-        
+
         int depth = 0;
-        
+
         while (!queue.isEmpty() && depth < n) {
             int levelSize = queue.size();
             depth++;
-            
+
             for (int i = 0; i < levelSize; i++) {
                 IAtom currentAtom = queue.poll();
-                
+
                 for (IBond bond : currentAtom.bonds()) {
                     IAtom neighbor = bond.getOther(currentAtom);
                     if (neighbor.equals(atom2)) {
@@ -1131,14 +1133,14 @@ public class MMFF94 extends ForceField {
                 }
             }
         }
-        
+
         return new boolean[]{false, true}; // If we exit the loop, atom2 was not found within n bonds.
     }
-    
+
     private static int binarySearch(List<Float[]> array, int keyIndex, float key) {
         int low = 0;
         int high = array.size() - 1;
-        
+
         while (low <= high) {
             int mid = low + (high - low) / 2;
             float midValue = array.get(mid)[keyIndex];
@@ -1156,5 +1158,5 @@ public class MMFF94 extends ForceField {
         }
         return -1;  // key not found.
     }
-    
+
 }
