@@ -68,7 +68,7 @@ public class MMFF94BondStretchingComponent extends EnergyComponent {
             totalEnergy += energy;
         }
         if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Total Bond Stretching Energy =\t%.5f\n".formatted(totalEnergy));
+            LOGGER.fine(String.format("Total Bond Stretching Energy =\t%.5f\n", totalEnergy));
         }
         return totalEnergy;
     }

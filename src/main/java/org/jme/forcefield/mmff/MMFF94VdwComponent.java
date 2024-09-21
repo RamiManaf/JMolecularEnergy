@@ -40,7 +40,7 @@ import org.jme.forcefield.ForceField;
  * @author Rami Manaf Abdullah
  */
 public class MMFF94VdwComponent extends EnergyComponent {
-    
+
     private static final Logger LOGGER = Logger.getLogger(MMFF94VdwComponent.class.getName());
 
     /**
@@ -70,7 +70,7 @@ public class MMFF94VdwComponent extends EnergyComponent {
             totalEnergy += energy;
         };
         if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Total Vdw Energy =\t%.5f\n".formatted(totalEnergy));
+            LOGGER.fine(String.format("Total Vdw Energy =\t%.5f\n", totalEnergy));
         }
         return totalEnergy;
     }
@@ -96,7 +96,7 @@ public class MMFF94VdwComponent extends EnergyComponent {
         }
         return calculateVdwEnergy(iAtom, jAtom);
     }
-    
+
     private double calculateVdwEnergy(IAtom iAtom, IAtom jAtom) {
         Objects.requireNonNull(forceField);
         int i = iAtom.getProperty(MMFF94_TYPE);
@@ -112,17 +112,17 @@ public class MMFF94VdwComponent extends EnergyComponent {
             //unlike pairs
             double RStarII = iParameters.A * Math.pow(iParameters.alpha, 0.25d);
             double RStarJJ = jParameters.A * Math.pow(jParameters.alpha, 0.25d);
-            
+
             double B = (iParameters.DA == MMFF94Parameters.VdwParameters.DONER || jParameters.DA == MMFF94Parameters.VdwParameters.DONER) ? 0 : 0.2;
             double beta = 12;
             double gamma = (RStarII - RStarJJ) / (RStarII + RStarJJ);
             RStarIJ = 0.5 * (RStarII + RStarJJ) * (1 + B * (1 - Math.exp(-beta * Math.pow(gamma, 2))));
         }
-        
+
         double epsilonIJ = 181.16 * iParameters.G * jParameters.G * iParameters.alpha * jParameters.alpha;
         epsilonIJ /= (Math.sqrt(iParameters.alpha / iParameters.N) + Math.sqrt(jParameters.alpha / jParameters.N));
         epsilonIJ /= Math.pow(RStarIJ, 6);
-        
+
         if (iParameters.DA + jParameters.DA == 3) {
             //one is doner and the other is acceptor
             //we must calculate epsilon with the unscaled RStarIJ
@@ -134,9 +134,9 @@ public class MMFF94VdwComponent extends EnergyComponent {
         vdwEnergy = vdwEnergy * (((1.12 * Math.pow(RStarIJ, 7)) / (Math.pow(distance, 7) + 0.12 * Math.pow(RStarIJ, 7))) - 2);
         vdwEnergy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(vdwEnergy, forceField.getEnergyUnit());
         if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.finer("%s #%d\t%s #%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t".formatted(iAtom.getSymbol(), iAtom.getIndex()+1, jAtom.getSymbol(), jAtom.getIndex()+1, iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), distance, RStarIJ, epsilonIJ));
+            LOGGER.finer(String.format("%s #%d\t%s #%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t", iAtom.getSymbol(), iAtom.getIndex() + 1, jAtom.getSymbol(), jAtom.getIndex() + 1, iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), distance, RStarIJ, epsilonIJ));
         }
         return vdwEnergy;
     }
-    
+
 }

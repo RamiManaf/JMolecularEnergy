@@ -71,7 +71,7 @@ public class MMFF94TorsionComponent extends EnergyComponent {
             totalEnergy += energy;
         };
         if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Total Torsion Strain Energy: =\t%.5f\n".formatted(totalEnergy));
+            LOGGER.fine(String.format("Total Torsion Strain Energy: =\t%.5f\n", totalEnergy));
         }
         return totalEnergy;
 

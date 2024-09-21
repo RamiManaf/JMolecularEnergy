@@ -71,7 +71,7 @@ public class MMFF94AngleBendingComponent extends EnergyComponent {
             totalEnergy += energy;
         }
         if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Total Angle Bending Energy =\t%.5f\n".formatted(totalEnergy));
+            LOGGER.fine(String.format("Total Angle Bending Energy =\t%.5f\n", totalEnergy));
         }
         return totalEnergy;
     }
@@ -113,7 +113,7 @@ public class MMFF94AngleBendingComponent extends EnergyComponent {
         }
         energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
         if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.finer("%s\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f".formatted(iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex()+1, kAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), parameters[0].intValue(), angle, parameters[5], deltaAngle, energy, parameters[4]));
+            LOGGER.finer(String.format("%s\t%s #%d\t%s\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f", iAtom.getSymbol(), jAtom.getSymbol(), jAtom.getIndex() + 1, kAtom.getSymbol(), iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), kAtom.getProperty(MMFF94_TYPE), parameters[0].intValue(), angle, parameters[5], deltaAngle, energy, parameters[4]));
         }
         return energy;
     }

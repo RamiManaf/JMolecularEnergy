@@ -143,7 +143,7 @@ public class MMFF94 extends ForceField {
         if (LOGGER.isLoggable(Level.FINER)) {
             LOGGER.fine("Name\tType\tCharge");
             for (IAtom atom : atomContainer.atoms()) {
-                LOGGER.fine("%s #%d\t%d\t%.3f".formatted(atom.getAtomTypeName(), atom.getIndex() + 1, atom.getProperty(MMFF94_TYPE), atom.getCharge()));
+                LOGGER.fine(String.format("%s #%d\t%d\t%.3f", atom.getAtomTypeName(), atom.getIndex() + 1, atom.getProperty(MMFF94_TYPE), atom.getCharge()));
             }
         }
         assignBondParameters(atomContainer);
@@ -389,7 +389,7 @@ public class MMFF94 extends ForceField {
             energy += energyComponent.calculateEnergy(atomContainer);
         }
         if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Total Energy = \t%.5f".formatted(energy));
+            LOGGER.fine(String.format("Total Energy = \t%.5f", energy));
         }
         return energy;
     }
@@ -658,10 +658,10 @@ public class MMFF94 extends ForceField {
         List<Float[]> torsionParameters = mmff94s ? mmffParameters.torsionParametersStatic : mmffParameters.torsionParameters;
         Float[] foundTorsionParameters = null;
         boolean usedOldTorsionType = false;
-        while ((equivalentIndex < 5 && foundTorsionParameters == null && torsionType != oldTorsionType) 
-                || (equivalentIndex < 4 && foundTorsionParameters == null) 
+        while ((equivalentIndex < 5 && foundTorsionParameters == null && torsionType != oldTorsionType)
+                || (equivalentIndex < 4 && foundTorsionParameters == null)
                 || (equivalentIndex == 4 && torsionType == 5 && oldTorsionType != 0)) {
-            if (equivalentIndex ==4 && !usedOldTorsionType) {
+            if (equivalentIndex == 4 && !usedOldTorsionType) {
                 usedOldTorsionType = true;
                 torsionType = oldTorsionType;
                 equivalentIndex = 0;
