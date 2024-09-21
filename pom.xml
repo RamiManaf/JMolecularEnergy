@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.ramimanaf</groupId>
     <artifactId>jme</artifactId>
-    <version>0.1.2-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>JMolecularEnergy</name>
     <description>A library for calculating molecules potential energy and it's applications</description>
