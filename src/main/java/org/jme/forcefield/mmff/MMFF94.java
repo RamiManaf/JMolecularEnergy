@@ -49,7 +49,8 @@ import org.openscience.cdk.ringsearch.RingSearch;
 /**
  * Merck Molecular Force Field (MMFF94) implementation. The implementation is
  * based on MMFF seven papers, JMol, and RDKit implementations and include both
- * MMFF94 and MMFF94s. All the calculated energies are in kcal/mol unit.
+ * MMFF94 and MMFF94s. All the calculated energies are in kcal/mol unit by
+ * default.
  *
  * @author Rami Manaf Abdullah
  */
@@ -100,8 +101,9 @@ public class MMFF94 extends ForceField {
     }
 
     /**
-     * preliminary assignation of MMFF94 parameters for the molecule. This is
-     * required before calculating any energy is possible.
+     * Performs a preliminary assignment of MMFF94 parameters to the molecule.
+     * This step is necessary before any energy calculations can be performed
+     * and must be repeated whenever the molecular structure is modified.
      *
      * @param atomContainer
      */
@@ -373,7 +375,7 @@ public class MMFF94 extends ForceField {
     }
 
     /**
-     * calculates the potential energy for the molecule in kcal/mol. This
+     * Calculates the potential energy for the molecule in kcal/mol. This
      * includes all energy terms in MMFF94
      *
      * @param atomContainer

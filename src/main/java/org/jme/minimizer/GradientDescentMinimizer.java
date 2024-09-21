@@ -29,14 +29,17 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * Gradient descent energy minimizer
+ * The {@code GradientDescentMinimizer} class implements the gradient descent
+ * optimization algorithm for minimizing the potential energy of molecular
+ * systems. This class iteratively adjusts molecular coordinates in the
+ * direction of the negative gradient of the energy landscape, aiming to find
+ * stable geometries.
  *
  * @author Rami Manaf Abdullah
  */
 public class GradientDescentMinimizer extends EnergyMinimizer {
 
     private ForceField forcefield;
-
 
     public GradientDescentMinimizer(ForceField forcefield) {
         this.forcefield = forcefield;
@@ -73,19 +76,19 @@ public class GradientDescentMinimizer extends EnergyMinimizer {
                     movePoint(point, distance, i);
                     if (constraint == null || constraint.check(forcefield, container) || !initializedGradients) {
                         double difference = forcefield.calculateEnergy(container) - lastEnergy;
-                        atomGradients[i] = -difference / (distance==0?1:distance);
+                        atomGradients[i] = -difference / (distance == 0 ? 1 : distance);
                         if (!initializedGradients) {
                             movePoint(point, -distance, i);
                         } else {
                             if (difference > 0) {
                                 movePoint(point, -distance, i);
-                                atomGradients[i] = atomGradients[i]*0.9;
+                                atomGradients[i] = atomGradients[i] * 0.9;
                             } else {
                                 lastEnergy += difference;
-                                atomGradients[i] = atomGradients[i]*1.05;
+                                atomGradients[i] = atomGradients[i] * 1.05;
                             }
                         }
-                    }else{
+                    } else {
                         movePoint(point, -distance, i);
                     }
                 }

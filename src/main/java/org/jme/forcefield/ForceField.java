@@ -30,7 +30,19 @@ import java.util.Objects;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * A general class for defining a force field
+ * The {@code ForceField} class serves as an abstract base class for defining
+ * different types of force fields. A force field represents a mathematical
+ * model that describes the potential energy of a molecular system as a function
+ * of atomic positions.
+ *
+ * <p>
+ * <b>Key responsibilities:</b></p>
+ * <ul>
+ * <li>Defining the potential energy function for molecular systems.</li>
+ * <li>Atom typing and providing parameters for various energy terms, such as
+ * bond stretching, angle bending, and nonbonded interactions.</li>
+ * <li>Managing the energy components of the force field.</li>
+ * </ul>
  *
  * @author Rami Manaf Abdullah
  */

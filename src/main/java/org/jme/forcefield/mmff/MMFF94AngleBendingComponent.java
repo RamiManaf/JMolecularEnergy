@@ -40,6 +40,11 @@ import org.jme.forcefield.ForceField;
 
 /**
  *
+ * The {@code MMFF94AngleBendingComponent} class represents the angle bending
+ * component in the MMFF94 force field. This component is responsible for
+ * calculating the energy associated with deviations from the ideal bond angles
+ * between three connected atoms in a molecule.
+ *
  * @author Rami Manaf Abdullah
  */
 public class MMFF94AngleBendingComponent extends EnergyComponent {
@@ -77,8 +82,8 @@ public class MMFF94AngleBendingComponent extends EnergyComponent {
     }
 
     /**
-     * calculates the angle bending energy for the angle that is formed from the
-     * three atoms.
+     * calculates the angle bending energy for the angle that is formed by three
+     * consecutive atoms.
      *
      * @param iAtom the atom at one side
      * @param jAtom the atom in the middle

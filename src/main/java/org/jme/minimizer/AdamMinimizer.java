@@ -29,8 +29,10 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * energy minimization based on Adam optimization algorithm. This is commonly
- * used for avoiding gradient descent explosion
+ * The {@code AdamMinimizer} class implements the Adam optimization algorithm 
+ * for minimizing the potential energy of a molecular system. This class is 
+ * designed to perform energy minimization efficiently, utilizing adaptive 
+ * learning rates to enhance convergence.
  *
  * @author Rami Manaf Abdullah
  */

@@ -30,7 +30,19 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- *
+ * The {@code ConformationalConstraintFactory} class provides methods for 
+ * creating conformational constraints on compounds. Conformational constraints 
+ * are typically used in computational chemistry to limit the degrees of freedom 
+ * of molecular structures during simulations or optimizations, ensuring that 
+ * certain geometric features are preserved.
+ * 
+ * <p><b>Usage example:</b></p>
+ * <pre>{@code
+ * Constraint c = ConformationalConstraintFactory.constrainDistance(iAtom, jAtom, 1.5, 1.75);
+ * minimizer.setConstraint(c);
+ * // Use factory methods to create constraints
+ * }</pre>
+ * 
  * @author Rami Manaf Abdullah
  */
 public class ConformationalConstraintFactory {

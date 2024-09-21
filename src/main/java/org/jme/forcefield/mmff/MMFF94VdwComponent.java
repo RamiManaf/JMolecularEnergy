@@ -36,6 +36,10 @@ import org.jme.forcefield.EnergyComponent;
 import org.jme.forcefield.ForceField;
 
 /**
+ * The {@code MMFF94VdwComponent} class represents the van der Waals interaction
+ * component in the MMFF94 force field. This class is responsible for
+ * calculating the non-bonded interactions between atoms due to van der Waals
+ * forces, which arise from transient dipole-induced dipole interactions.
  *
  * @author Rami Manaf Abdullah
  */
@@ -44,7 +48,7 @@ public class MMFF94VdwComponent extends EnergyComponent {
     private static final Logger LOGGER = Logger.getLogger(MMFF94VdwComponent.class.getName());
 
     /**
-     * calculates the Van Der Waals interaction energy between all the atoms in
+     * Calculates the Van Der Waals interaction energy between all the atoms in
      * the provided atom container if the atoms are separated by three or more
      * bonds or they are not from the same molecule.
      *
@@ -76,7 +80,7 @@ public class MMFF94VdwComponent extends EnergyComponent {
     }
 
     /**
-     * calculate Van Der Waals energy between two atoms. Generally
+     * Calculate Van Der Waals energy between two atoms. Generally
      * intermolecular interactions are calculated between non-bonded atoms or
      * atoms separated by three bonds (two atoms at least)
      *

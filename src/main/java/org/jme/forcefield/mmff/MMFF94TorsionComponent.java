@@ -38,6 +38,10 @@ import org.jme.forcefield.EnergyComponent;
 import org.jme.forcefield.ForceField;
 
 /**
+ * The {@code MMFF94TorsionComponent} class represents the torsional interaction
+ * component in the MMFF94 force field. This class is responsible for
+ * calculating the energy associated with the rotation around a bond between two
+ * atoms, which influences the molecular conformation.
  *
  * @author Rami Manaf Abdullah
  */
@@ -78,8 +82,9 @@ public class MMFF94TorsionComponent extends EnergyComponent {
     }
 
     /**
-     * calculates the torsion energy for the torsion angle formed by i-j-k-l
-     * atoms
+     * Calculates the torsion energy for the torsion angle formed by i-j-k-l
+     * atoms. The calculation is base on the angle formed by the rotation around
+     * the j-k bond.
      *
      * @param iAtom
      * @param jAtom
@@ -95,7 +100,7 @@ public class MMFF94TorsionComponent extends EnergyComponent {
         Float[] torsionParameters = ((Map<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_TORSION)).get(Arrays.asList(iAtom, jAtom, kAtom, lAtom));
         if (LOGGER.isLoggable(Level.FINER)) {
             LOGGER.finer("    T O R S I O N A L    \n"
-                    +"\n"
+                    + "\n"
                     + " --------------ATOMS--------------  ---ATOM TYPES---   FF     TORSION    STERIC    --FORCE CONSTANTS--\n"
                     + "  I       J          K       L        I   J   K   L   CLASS    ANGLE     ENERGY     V1      V2      V3\n"
                     + " ------------------------------------------------------------------------------------------------------");
@@ -103,7 +108,7 @@ public class MMFF94TorsionComponent extends EnergyComponent {
         return calculateEnergy(iAtom, jAtom, kAtom, lAtom, torsionParameters);
     }
 
-    public double calculateEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom, Float[] torsionParameters) {
+    private double calculateEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom, Float[] torsionParameters) {
         Objects.requireNonNull(forceField);
         if ((Integer) kAtom.getProperty(MMFF94_TYPE) < (Integer) jAtom.getProperty(MMFF94_TYPE)
                 || (jAtom.getProperty(MMFF94_TYPE).equals((Integer) kAtom.getProperty(MMFF94_TYPE)) && (Integer) iAtom.getProperty(MMFF94_TYPE) > (Integer) lAtom.getProperty(MMFF94_TYPE))) {

@@ -40,6 +40,14 @@ import org.jme.forcefield.EnergyComponent;
 import org.jme.forcefield.ForceField;
 
 /**
+ * The {@code MMFF94StretchBendComponent} class represents the stretch-bend
+ * interaction component in the MMFF94 force field. This component is
+ * responsible for calculating the energy associated with coupled bond
+ * stretching and angle bending deformations in a molecular structure.
+ * <p>
+ * Stretch-bend interactions arise when the length of a bond and the angle
+ * between two bonds involving a central atom change simultaneously.
+ * </p>
  *
  * @author Rami Manaf Abdullah
  */
@@ -48,7 +56,7 @@ public class MMFF94StretchBendComponent extends EnergyComponent {
     private static final Logger LOGGER = Logger.getLogger(MMFF94StretchBendComponent.class.getName());
 
     /**
-     * calculates the energy term that interlink the stretching and bending
+     * Calculates the energy term that couple the stretching and bending
      * energies of a three consecutively bonded atoms.
      *
      * @param atomContainer
@@ -79,7 +87,7 @@ public class MMFF94StretchBendComponent extends EnergyComponent {
     }
 
     /**
-     * calculates stretch bend energy that couples i-j and j-k bonds stretching
+     * Calculates stretch bend energy that couples i-j and j-k bonds stretching
      * to the angle formed by i-j-k. This energy favors bonds stretching when
      * the angle decrease.
      *

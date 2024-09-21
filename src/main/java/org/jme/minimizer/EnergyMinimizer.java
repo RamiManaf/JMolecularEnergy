@@ -28,7 +28,10 @@ import org.jme.constraint.Constraint;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
- * an interface for molecule potential energy minimization.
+ * The {@code EnergyMinimizer} abstract class serves as a base class for
+ * implementing various energy minimization algorithms aimed at optimizing the
+ * geometry of molecular systems. This class provides a framework for minimizing
+ * the potential energy surface to achieve stable molecular conformations.
  *
  * @author Rami Manaf Abdullah
  */
@@ -39,7 +42,7 @@ public abstract class EnergyMinimizer {
     protected Constraint constraint;
 
     /**
-     * a consumer that is called after each minimization step. It receives two
+     * A consumer that is called after each minimization step. It receives two
      * parameters, the step number and the energy after that step.
      *
      * @param onStepConsumer
@@ -64,7 +67,13 @@ public abstract class EnergyMinimizer {
     }
 
     /**
-     * minimize the container potential energy in the same thread
+     * Minimizes the potential energy of the specified molecular container
+     * within the current thread.
+     *
+     * <p>
+     * This method iteratively adjusts the molecular geometry to reduce the
+     * potential energy, employing the specified step size and stopping criteria
+     * based on the energy difference.</p>
      *
      * @param container the molecule to minimize
      * @param maximumSteps maximum number of steps
@@ -75,7 +84,7 @@ public abstract class EnergyMinimizer {
     public abstract void minimize(IAtomContainer container, int maximumSteps, double stepSize, double threshold);
 
     /**
-     * returns the step minimizer is currently at it
+     * Returns the step minimizer is currently at it
      *
      * @return
      */

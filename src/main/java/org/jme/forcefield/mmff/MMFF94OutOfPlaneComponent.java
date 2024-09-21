@@ -39,6 +39,15 @@ import org.jme.forcefield.EnergyComponent;
 import org.jme.forcefield.ForceField;
 
 /**
+ * The {@code MMFF94OutOfPlaneComponent} class models out-of-plane bending
+ * interactions in the MMFF94 force field. This component is responsible for
+ * calculating the energy contributions from deviations of atoms from their
+ * ideal planar positions around trigonal centers.
+ * <p>
+ * In MMFF94, out-of-plane interactions occur when an atom deviates from the
+ * plane formed by three bonded atoms. The energy is calculated based on how
+ * much an atom bends out of the ideal plane.
+ * </p>
  *
  * @author Rami Manaf Abdullah
  */
@@ -47,7 +56,7 @@ public class MMFF94OutOfPlaneComponent extends EnergyComponent {
     private static final Logger LOGGER = Logger.getLogger(MMFF94OutOfPlaneComponent.class.getName());
 
     /**
-     * calculates the out of plane energy component in all the atoms that are
+     * Calculates the out of plane energy component in all the atoms that are
      * connected by four atoms.
      *
      * @param atomContainer
@@ -77,7 +86,9 @@ public class MMFF94OutOfPlaneComponent extends EnergyComponent {
     }
 
     /**
-     * calculates out of plane energy for the atoms
+     * Calculates out-of-plane energy for the atoms. The atoms are bonded in the
+     * order of i-j-k;l, where l is bonded to the j atom. The energy is based on
+     * the angle formed between i-j-k plane and the l atom.
      *
      * @param iAtom first atom forming the plane
      * @param jAtom the middle atom forming the plane

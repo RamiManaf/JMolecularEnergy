@@ -36,6 +36,10 @@ import org.jme.forcefield.ForceField;
 import static org.jme.forcefield.mmff.MMFF94.MMFF94_TYPE;
 
 /**
+ * The {@code MMFF94BondStretchingComponent} class represents the bond
+ * stretching component in the MMFF94 force field. This component is responsible
+ * for calculating the energy associated with the deviation of bond lengths from
+ * their equilibrium values in a molecule.
  *
  * @author Rami Manaf Abdullah
  */
@@ -44,7 +48,7 @@ public class MMFF94BondStretchingComponent extends EnergyComponent {
     private static final Logger LOGGER = Logger.getLogger(MMFF94BondStretchingComponent.class.getName());
 
     /**
-     * calculate the bond stretching energy for all the bonds in the atom
+     * Calculate the bond stretching energy for all the bonds in the atom.
      * container
      *
      * @param atomContainer
@@ -74,7 +78,7 @@ public class MMFF94BondStretchingComponent extends EnergyComponent {
     }
 
     /**
-     * calculate the bond stretching energy in the provided bond
+     * Calculate the bond stretching energy in the provided bond.
      *
      * @param bond
      * @return
@@ -101,7 +105,7 @@ public class MMFF94BondStretchingComponent extends EnergyComponent {
         double energy = .5 * 143.9325 * parameters.kb * deltaR * deltaR * (1 - 2 * deltaR + (7d / 12d) * 4 * deltaR * deltaR);
         energy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(energy, forceField.getEnergyUnit());
         if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.finer(String.format("%s #%d\t%s #%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", iAtom.getSymbol(), iAtom.getIndex()+1, jAtom.getSymbol(), jAtom.getIndex()+1, iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), parameters.bondType, length, parameters.r0, deltaR, energy, parameters.kb));
+            LOGGER.finer(String.format("%s #%d\t%s #%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", iAtom.getSymbol(), iAtom.getIndex() + 1, jAtom.getSymbol(), jAtom.getIndex() + 1, iAtom.getProperty(MMFF94_TYPE), jAtom.getProperty(MMFF94_TYPE), parameters.bondType, length, parameters.r0, deltaR, energy, parameters.kb));
         }
         return energy;
     }

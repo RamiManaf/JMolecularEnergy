@@ -38,6 +38,10 @@ import org.jme.forcefield.ForceField;
 import static org.jme.forcefield.mmff.MMFF94.MMFF94_TYPE;
 
 /**
+ * The {@code MMFF94ElectrostaticComponent} class represents the electrostatic
+ * interaction component in the MMFF94 force field. This component is
+ * responsible for calculating the electrostatic energy between atoms with
+ * partial and formal charges on atoms within a molecule.
  *
  * @author Rami Manaf Abdullah
  */
@@ -46,7 +50,7 @@ public class MMFF94ElectrostaticComponent extends EnergyComponent {
     private static final Logger LOGGER = Logger.getLogger(MMFF94ElectrostaticComponent.class.getName());
 
     /**
-     * calculates the electrostatic interaction between all the atoms in the
+     * Calculates the electrostatic interaction between all the atoms in the
      * provided atom container if the atoms are separated by three or more bonds
      * or they are not in the same molecule. The dielectric constant is
      * considered 1.
@@ -92,7 +96,7 @@ public class MMFF94ElectrostaticComponent extends EnergyComponent {
     }
 
     /**
-     * calculates electrostatic interaction energy between the two atoms.
+     * Calculates electrostatic interaction energy between the two atoms.
      * Generally intermolecular interactions are calculated between non-bonded
      * atoms or atoms separated by three bonds (two atoms at least)
      *

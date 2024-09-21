@@ -31,7 +31,8 @@ import org.openscience.cdk.interfaces.IAtomContainer;
  * Each {@code EnergyComponent} contributes a distinct portion of the total
  * potential energy for a molecule. Extending this class encapsulate the
  * calculations relevant to their specific type of energy, such as bond
- * stretching, angle bending, or torsional forces.
+ * stretching, angle bending, or torsional forces. After instantiation, the
+ * energy component must be added to a force field to be functional.
  * </p>
  *
  * @author Rami Manaf Abdullah
@@ -43,7 +44,7 @@ public abstract class EnergyComponent {
     void setForceField(ForceField forceField) {
         this.forceField = forceField;
     }
-    
+
     /**
      * Calculates the potential energy with respect to atomic positions for this
      * component.
