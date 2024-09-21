@@ -60,7 +60,8 @@ public class MMFF94ElectrostaticComponent extends EnergyComponent {
      */
     @Override
     public double calculateEnergy(IAtomContainer atomContainer) {
-        return calculateEnergy(atomContainer, 1);
+        Objects.requireNonNull(forceField);
+        return calculateEnergy(atomContainer, forceField.getDielectricConstant());
     }
 
     /**
@@ -135,6 +136,9 @@ public class MMFF94ElectrostaticComponent extends EnergyComponent {
         double qI = iAtom.getCharge();
         double qJ = jAtom.getCharge();
         double distance = iAtom.getPoint3d().distance(jAtom.getPoint3d());
+        if (forceField.getCutoffDistance() > 0 && distance > forceField.getCutoffDistance()) {
+            return 0;
+        }
         double electrostaticEnergy = 332.0716 * qI * qJ / (dielectricConstant * (distance + 0.05));
         if (iAtom.getContainer() == jAtom.getContainer() && separatedBy3Bonds) {
             electrostaticEnergy *= 0.75;

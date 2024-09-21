@@ -134,6 +134,9 @@ public class MMFF94VdwComponent extends EnergyComponent {
             epsilonIJ *= 0.5;
         }
         double distance = iAtom.getPoint3d().distance(jAtom.getPoint3d());
+        if (forceField.getCutoffDistance() > 0 && distance > forceField.getCutoffDistance()) {
+            return 0;
+        }
         double vdwEnergy = epsilonIJ * Math.pow((1.07 * RStarIJ) / (distance + 0.07 * RStarIJ), 7);
         vdwEnergy = vdwEnergy * (((1.12 * Math.pow(RStarIJ, 7)) / (Math.pow(distance, 7) + 0.12 * Math.pow(RStarIJ, 7))) - 2);
         vdwEnergy = ForceField.EnergyUnit.KCAL_PER_MOL.convertTo(vdwEnergy, forceField.getEnergyUnit());

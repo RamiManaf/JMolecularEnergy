@@ -48,6 +48,8 @@ import org.openscience.cdk.interfaces.IAtomContainer;
  */
 public abstract class ForceField {
 
+    private double dielectricConstant = 1;
+    private double cutoffDistance = 0;
     protected EnergyUnit energyUnit = EnergyUnit.KCAL_PER_MOL;
     protected List<EnergyComponent> components = new ArrayList<>();
 
@@ -155,6 +157,56 @@ public abstract class ForceField {
             return (value * this.toJouleFactor) / toUnit.toJouleFactor;
         }
 
+    }
+
+    /**
+     * Sets the non-bonded cutoff distance for the force field.
+     *
+     * <p>
+     * The non-bonded cutoff distance defines the maximum distance at which
+     * non-bonded interactions (e.g., van der Waals and electrostatic forces)
+     * are considered. Interactions beyond this distance will not be calculated,
+     * improving computational efficiency. A value of 0 indicates an unlimited
+     * cutoff distance, meaning that all non-bonded interactions will be
+     * considered without restriction.</p>
+     *
+     * @param cutoffDistance in angstroms
+     */
+    public void setCutoffDistance(double cutoffDistance) {
+        this.cutoffDistance = cutoffDistance;
+    }
+
+    /**
+     * Retrieves the current non-bonded cutoff distance in angstroms.
+     *
+     * @return
+     */
+    public double getCutoffDistance() {
+        return cutoffDistance;
+    }
+
+    /**
+     * Sets the dielectric constant for the force field.
+     *
+     * <p>
+     * The dielectric constant is used to model the effect of the environment on
+     * electrostatic interactions within the force field. A higher dielectric
+     * constant typically represents a more polar solvent, while a lower value
+     * approximates vacuum conditions.</p>
+     *
+     * @param dielectricConstant
+     */
+    public void setDielectricConstant(double dielectricConstant) {
+        this.dielectricConstant = dielectricConstant;
+    }
+
+    /**
+     * Retrieves the current dielectric constant.
+     *
+     * @return
+     */
+    public double getDielectricConstant() {
+        return dielectricConstant;
     }
 
 }
