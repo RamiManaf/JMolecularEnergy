@@ -95,6 +95,13 @@ public class MMFF94AngleBendingComponent extends EnergyComponent {
             throw new IllegalArgumentException("the atoms must be bonded in the order i-j-k");
         }
         checkParametersAssigned(iAtom);
+        int i = iAtom.getProperty(MMFF94_TYPE);
+        int k = kAtom.getProperty(MMFF94_TYPE);
+        if(i > k || (i == k && iAtom.getIndex() > kAtom.getIndex())){
+            IAtom temp = kAtom;
+            kAtom = iAtom;
+            iAtom = temp;
+        }
         Float[] parameters = ((Map<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_ANGLE_BENDING)).get(Arrays.asList(iAtom, jAtom, kAtom));
         if (LOGGER.isLoggable(Level.FINER)) {
             LOGGER.finer("      A N G L E   B E N D I N G         \n"

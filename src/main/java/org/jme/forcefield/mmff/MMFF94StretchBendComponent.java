@@ -108,6 +108,13 @@ public class MMFF94StretchBendComponent extends EnergyComponent {
                     + "  I       J       K     I    J    K  CLASS    ANGLE       ANGLE      R(I,J)    ENERGY       I-J\n"
                     + " -------------------------------------------------------------------------------------------------");
         }
+        int i = iAtom.getProperty(MMFF94_TYPE);
+        int k = kAtom.getProperty(MMFF94_TYPE);
+        if(i > k || (i == k && iAtom.getIndex() > kAtom.getIndex())){
+            IAtom temp = kAtom;
+            kAtom = iAtom;
+            iAtom = temp;
+        }
         Float[] angleBendingParameters = ((Map<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_ANGLE_BENDING)).get(Arrays.asList(iAtom, jAtom, kAtom));
         Float[] stretchBendParameters = ((Map<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_STRETCH_BEND)).get(Arrays.asList(iAtom, jAtom, kAtom));
         return calculateEnergy(iAtom, jAtom, kAtom, angleBendingParameters, stretchBendParameters);

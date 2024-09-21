@@ -110,8 +110,11 @@ public class MMFF94TorsionComponent extends EnergyComponent {
 
     private double calculateEnergy(IAtom iAtom, IAtom jAtom, IAtom kAtom, IAtom lAtom, Float[] torsionParameters) {
         Objects.requireNonNull(forceField);
-        if ((Integer) kAtom.getProperty(MMFF94_TYPE) < (Integer) jAtom.getProperty(MMFF94_TYPE)
-                || (jAtom.getProperty(MMFF94_TYPE).equals((Integer) kAtom.getProperty(MMFF94_TYPE)) && (Integer) iAtom.getProperty(MMFF94_TYPE) > (Integer) lAtom.getProperty(MMFF94_TYPE))) {
+        int i = iAtom.getProperty(MMFF94_TYPE);
+        int j = jAtom.getProperty(MMFF94_TYPE);
+        int k = kAtom.getProperty(MMFF94_TYPE);
+        int l = lAtom.getProperty(MMFF94_TYPE);
+        if (k < j || (j==k && i > l) || (j==k && i==l && jAtom.getIndex() > kAtom.getIndex())) {
             IAtom temp = jAtom;
             jAtom = kAtom;
             kAtom = temp;

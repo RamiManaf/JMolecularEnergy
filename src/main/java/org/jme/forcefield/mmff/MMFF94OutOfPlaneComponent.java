@@ -108,6 +108,13 @@ public class MMFF94OutOfPlaneComponent extends EnergyComponent {
                     + "  I -- J -- K ... L            I  J  K  L         ANGLE       ENERGY    CONSTANT\n"
                     + " --------------------------------------------------------------------------------");
         }
+        int i = iAtom.getProperty(MMFF94_TYPE);
+        int k = kAtom.getProperty(MMFF94_TYPE);
+        if (i < k || (k == i && iAtom.getIndex() < kAtom.getIndex())) {
+            IAtom temp = kAtom;
+            kAtom = iAtom;
+            iAtom = temp;
+        }
         Float[] parameters = ((HashMap<List<IAtom>, Float[]>) iAtom.getContainer().getProperty(MMFF94.MMFF94_OUT_OF_PLANE)).get(Arrays.asList(iAtom, jAtom, kAtom, lAtom));
         return calculateEnergy(iAtom, jAtom, kAtom, lAtom, parameters);
     }
