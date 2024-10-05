@@ -95,7 +95,7 @@ public class MMFF94 extends ForceField {
             LOGGER.log(Level.SEVERE, "Could not load MMFF94 parameter files", ex);
             throw new RuntimeException(ex);
         }
-        for (EnergyComponent component : Arrays.asList(bondStretchingComponent, stretchBendComponent, angleBendingComponent, outOfPlaneComponent, torsionComponent, vdwComponent, electrostaticComponent)) {
+        for (EnergyComponent component : Arrays.asList(bondStretchingComponent, angleBendingComponent, stretchBendComponent, outOfPlaneComponent, torsionComponent, vdwComponent, electrostaticComponent)) {
             addEnergyComponent(component);
         }
     }
