@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ramimanaf.github.io/JMolecularEnergy/forcefield/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Force Field - JME-Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Force Field";
+        var mkdocs_page_input_path = "forcefield.md";
+        var mkdocs_page_url = "/JMolecularEnergy/forcefield/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Getting Started</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Force Field</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#assigning-parameters">Assigning Parameters</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#energy-component">Energy Component</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#energy-unit">Energy Unit</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#cutoff-distance">Cutoff Distance</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dielectric-constant">Dielectric Constant</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mmff94/">MMFF94 Force Field</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../calculate-energy-without-coordinates/">Calculate Potential Energy without 3D Coordinates</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../energy-minimization/">Energy Minimization</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../constraint/">Constraints</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">JME-Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Force Field</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/RamiManaf/JMolecularEnergy/edit/master/docs/forcefield.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="force-field">Force Field</h1>
+<p>A force field is an algorithm that is used to calculate potential energy for the 
+modeled compounds. In JMolecular Energy the force field is represented with <code>ForceField</code> 
+abstract class where all the force fields should extend this class. The class offer
+methods that is intended to contain certain functionalities.</p>
+<h2 id="assigning-parameters">Assigning Parameters</h2>
+<p>Empirical force fields most of the time assign parameters to the molecule based on
+the functional groups and atoms it has. This will facilitate calculating the potential
+energy for the molecule in the next step. Assigning parameters can be done using this method</p>
+<pre><code class="language-java">mmff.assignParameters(atomContainer);
+</code></pre>
+<h2 id="energy-component">Energy Component</h2>
+<p>Each <code>ForceField</code> contains one or more of the <code>EnergyComponent</code>. These components
+are intended to address different energy terms such as bond stretching, angle bending
+and intermolecular interactions.
+<img alt="Force Field" src="../img/forcefield.png" />
+Each one contribute to the total potential energy of the system by certain energy.
+ The class <code>ForceField</code> sums up this energy in the <code>double calculateEnergy(IAtomContainer)</code> 
+method and return it as a <code>double</code>. You can access the energy components in a certain
+ force field using the method <code>List&lt;EnergyComponent&gt; getEnergyComponents()</code> which returns
+ a list of energy component. The <code>ForceField</code> class is flexible and you can add or remove
+ <code>EnergyComponent</code> using the method <code>addEnergyComponent(EnergyComponent)</code> and
+ <code>removeEnergyComponent(EnergyComponent)</code>. This allows for example to convert a force field
+ into inter- or intra-molecular interactions only which is very helpful when using
+ the force field in a docking or 3D QSAR algorithm.</p>
+<p>Energy components can be used alone to calculate the potential energy term alone as they
+ have their <code>double calculateEnergy(IAtomContainer)</code> method. The implementations 
+also have methods to calculate energy for a certain pair of atoms for example.</p>
+<h2 id="energy-unit">Energy Unit</h2>
+<p>The <code>ForceField</code> use the kcal/mol unit by defualt. In case you want to calculate 
+the energy in different unit you can use the <code>setEnergyUnit(EnergyUnit)</code> method for changing
+the unit. For example:</p>
+<pre><code class="language-java">forcefield.setEnergyUnit(EnergyUnit.KJ_PER_MOL);//for kilojoules/mol
+</code></pre>
+<h2 id="cutoff-distance">Cutoff Distance</h2>
+<p>In some force fields it is possible to specify a cutoff distance that defines the
+ distance in angstrom which beyond it any non-bonded interaction will be disregarded.
+ Using this functionality is very helpful in case of large systems where the number of intermolecular
+ interaction is very high. The energy beyond certain distance is very small and have 
+no significant amount and therefore can be disregarded.</p>
+<pre><code class="language-java">forcefield.setCutoffDistance(12);//sets the cutoff distance to 12 Å
+</code></pre>
+<h2 id="dielectric-constant">Dielectric Constant</h2>
+<p>Some force fields also has the dielectric constant functionality. This option enable
+ us to simulate the effect of certain solvents on the degree of intermolecular interaction
+ without the need the having the solvent molecules being modeled explicitly. The solvent
+ is represented as a continuous media rather than individual molecules. You can modify the
+ dielectric constant using <code>setDielectricConstant(double)</code> method.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Getting Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../mmff94/" class="btn btn-neutral float-right" title="MMFF94 Force Field">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/RamiManaf/JMolecularEnergy" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../mmff94/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

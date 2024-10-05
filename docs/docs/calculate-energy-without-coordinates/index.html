@@ -3,26 +3,25 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://example.com/calculate-energy-without-coordinates/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ramimanaf.github.io/JMolecularEnergy/calculate-energy-without-coordinates/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>Calculate Potential Energy without 3D Coordinates - JME-Docs</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Calculate Potential Energy without 3D Coordinates";
         var mkdocs_page_input_path = "calculate-energy-without-coordinates.md";
-        var mkdocs_page_url = "/calculate-energy-without-coordinates/";
+        var mkdocs_page_url = "/JMolecularEnergy/calculate-energy-without-coordinates/";
       </script>
     
-    <script src="../js/jquery-3.6.0.min.js" defer></script>
     <!--[if lt IE 9]>
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
-      <script>hljs.initHighlightingOnLoad();</script> 
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
@@ -31,10 +30,11 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> JME-Docs
+          <a href="..">
+          <img src="../img/logo.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
-      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
@@ -45,11 +45,15 @@
                 </li>
               </ul>
               <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../forcefield/">Force Field</a>
+                </li>
+              </ul>
+              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../mmff94/">MMFF94 Force Field</a>
                 </li>
               </ul>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">Calculate Potential Energy without 3D Coordinates</a>
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Calculate Potential Energy without 3D Coordinates</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#load-the-molecule">Load the molecule</a>
     </li>
@@ -66,6 +70,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../energy-minimization/">Energy Minimization</a>
                 </li>
               </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../constraint/">Constraints</a>
+                </li>
+              </ul>
       </div>
     </div>
     </nav>
@@ -79,9 +87,10 @@
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-      <li>Calculate Potential Energy without 3D Coordinates</li>
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Calculate Potential Energy without 3D Coordinates</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/RamiManaf/JMolecularEnergy/edit/master/docs/calculate-energy-without-coordinates.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -136,6 +145,10 @@ AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
     
+        <span>
+          <a href="https://github.com/RamiManaf/JMolecularEnergy" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
     
       <span><a href="../mmff94/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
@@ -144,14 +157,15 @@ AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
     
   </span>
 </div>
-    <script>var base_url = '..';</script>
-    <script src="../js/theme_extra.js" defer></script>
-    <script src="../js/theme.js" defer></script>
-      <script src="../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);
-        };
+        });
     </script>
 
 </body>

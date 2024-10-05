@@ -6,7 +6,7 @@ Before we can use Java Molecular Energy, we need to install it. Just add it as a
 <dependency>
     <groupId>io.github.ramimanaf</groupId>
     <artifactId>jme</artifactId>
-    <version>0.1.1</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 ## Load the Molecule
@@ -26,6 +26,6 @@ Create a MMFF94 object and assign MMFF94 parameters to it. After that you can ca
 ```java
 MMFF94 mmff94 = new MMFF94(false);
 mmff.assignParameters(container);
-System.out.println("Energy: "+mmff.calculateEnergy(container)+"kcal/mol");
+System.out.println("Energy: "+mmff.calculateEnergy(container)+" kcal/mol");
 ```
 And that's it!

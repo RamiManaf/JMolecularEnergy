@@ -1,24 +1,32 @@
 # MMFF94 Force Field
 MMFF94  is an empirical force field that is optimized for calculating potential energy of organic molecules. The force fields have two subdivisions MMFF94 & MMFF94s (stands for static). MMFF94 is the first one that is intended for simulation while MMFF94s is optimized for energy minimization. You can choose which one through the constructor boolean parameter of the force field. Use `true` for MMFF94s and `false` for MMFF94.
 ```java
+import org.jme.forcefield.mmff.MMFF94;
+...
 MMFF94 mmff94 = new MMFF94(false);
 ```
 ## MMFF94 Energy Terms
 The force field use several terms to calculate potential energy of the molecule.
 ![Force Field](img/forcefield.png)
 The forces are divided to bonded and non-bonded interactions:
+
 * Bonded Interactions:
-  * Bond Stretching: for calculating energy based on the distance between two bonded atoms.
-  * Angle Bending: the angle between three bonded atoms.
-  * Stretch Bend Interaction: A force that increase the bonds when the angle between three bonded atoms decrease. This is used to correct the structure of the molecule.
-  * Torsion: This term forces angle formed between four bonded atoms to be at certain angle. This angle is also called dihydral angle.
-  * Out Of Plane: This term is used to describe the effect of the angle formed when three atoms at least connect to a central atom. Two end atoms and the central atom can form a plane which the third end atom is out of it by certain angle. This term is used usually to correct the Sp2 hybridized central atom planarity.
+    * Bond Stretching: for calculating energy based on the distance between two bonded atoms.
+    * Angle Bending: the angle between three bonded atoms.
+    * Stretch Bend Interaction: A force that increase the bonds when the angle between three bonded atoms decrease. This is used to correct the structure of the molecule.
+    * Torsion: This term forces angle formed between four bonded atoms to be at certain angle. This angle is also called dihydral angle.
+    * Out Of Plane: This term is used to describe the effect of the angle formed when three atoms at least connect to a central atom. Two end atoms and the central atom can form a plane which the third end atom is out of it by certain angle. This term is used usually to correct the Sp2 hybridized central atom planarity.
 * Non-bonded Interactions:
-  * Van Der Waals: Calculate the van der waals force between two non-bonded atoms.
-  * Electrostatic Interaction: This term calculates electrostatic interaction energy between atoms. Note that not only atoms with formal charges are included as MMFF94 assign partial charges for unionized atoms.
- ## Implementation
+    * Van Der Waals: Calculate the van der waals force between two non-bonded atoms.
+    * Electrostatic Interaction: This term calculates electrostatic interaction energy between atoms. Note that not only atoms with formal charges are included as MMFF94 assign partial charges for unionized atoms.
+
+## Implementation
  MMFF94 instance when first created loads all the force fields parameters needed. Before calculating energy to any molecule you have to assign parameters to this molecule first. This process prevent MMFF94 from searching for proper paramters for the molecule each time you want to calculate the energy.
  
+```java
+mmff.assignParameters(atomContainer);
+```
+
   The partial charges are assigned to the molecule and you can retrive them using the following code:
  ```java
  atomContainer.getAtom(0).getCharge();

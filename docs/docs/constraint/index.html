@@ -3,18 +3,18 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ramimanaf.github.io/JMolecularEnergy/energy-minimization/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ramimanaf.github.io/JMolecularEnergy/constraint/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Energy Minimization - JME-Docs</title>
+    <title>Constraints - JME-Docs</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Energy Minimization";
-        var mkdocs_page_input_path = "energy-minimization.md";
-        var mkdocs_page_url = "/JMolecularEnergy/energy-minimization/";
+        var mkdocs_page_name = "Constraints";
+        var mkdocs_page_input_path = "constraint.md";
+        var mkdocs_page_url = "/JMolecularEnergy/constraint/";
       </script>
     
     <!--[if lt IE 9]>
@@ -56,20 +56,14 @@
                 <li class="toctree-l1"><a class="reference internal" href="../calculate-energy-without-coordinates/">Calculate Potential Energy without 3D Coordinates</a>
                 </li>
               </ul>
-              <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="#">Energy Minimization</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#create-a-minimizer-for-the-molecule">Create a Minimizer For The Molecule</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#assign-force-field-parameters-to-the-molecule">Assign Force Field Parameters To The Molecule</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#minimize-the-energy-for-the-molecule">Minimize The Energy For The Molecule</a>
-    </li>
-    </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../energy-minimization/">Energy Minimization</a>
                 </li>
               </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../constraint/">Constraints</a>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Constraints</a>
+    <ul class="current">
+    </ul>
                 </li>
               </ul>
       </div>
@@ -86,9 +80,9 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">Energy Minimization</li>
+      <li class="breadcrumb-item active">Constraints</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/RamiManaf/JMolecularEnergy/edit/master/docs/energy-minimization.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/RamiManaf/JMolecularEnergy/edit/master/docs/constraint.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -96,28 +90,25 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="energy-minimization">Energy Minimization</h1>
-<p>Previously we saw how to calculate the potential energy for a molecule using Java Molecular Energy. This showed how the molecule conformation can affect the potential energy. An important application for calculating potential energy for the molecule is minimizing it to obtain the most stable and favorable structure for the molecule. Here we will show you how to energy minimize a molecule using Java Molecular Energy.</p>
-<h2 id="create-a-minimizer-for-the-molecule">Create a Minimizer For The Molecule</h2>
-<p>The energy minimizer use the force field to calculate the energy and try to change the molecule structure to minimize it. We have different choices for choosing energy minimization algorithm. We will use <code>GradientDescent</code> as the most popular method.</p>
-<pre><code class="language-java">MMFF94 mmff = new MMFF94(true);
-GradientDescent minimizer = new GradientDescent(mmff);
+                <h1 id="constraints">Constraints</h1>
+<p>Constraints are locks that can prevent the molecule from violating certain conditions.
+ These locks are useful in certain situations such as in energy minimization and simulaiton.
+ The locks can be based on molecule confomration such as fixing two atoms at certain
+ distance from each other or allowing a range of angle that a dihydral angle is permitted to be
+ in.</p>
+<pre><code class="language-java">import org.jme.constraint.*;
+...
+ConformationalConstraintFactory.constrainDistance(atom1, atom2, 1.4, 1.6);//locks the bond distance between 1.4 to 1.6 Å
 </code></pre>
-<h2 id="assign-force-field-parameters-to-the-molecule">Assign Force Field Parameters To The Molecule</h2>
-<p>This step is required as the minimizer will keep calculating the energy of the molecule.</p>
-<pre><code class="language-java">mmff.assignParameters(container);
-</code></pre>
-<h2 id="minimize-the-energy-for-the-molecule">Minimize The Energy For The Molecule</h2>
-<p>When calling <code>minimize</code> method the minimizer will block the thread untlin the process finishes. The process is an iterative cycle with each cycle called a step. The minimizer will recieve the maximum steps at wich it will stop after them. Each step the minimizer will try to change the conformation of the molecule depending on the step size. The larger the step the faster the molecule will move to the energy minimum. However, small steps help the minimizer reach the smallest possible energy but with more steps.</p>
-<p>In this example we called the minimizer to do minimization for 1000 step with 0.1 step size. The final parameter is the threshold. This parameter determins the energy difference that when reached between two steps the minimizer will stop. E.g.: here if the last step minimized the energy by 10kcal, the minimizer will stop.</p>
-<pre><code class="language-java">minimizer.minimize(container, 1000, .1f, 10);
+<p><code>Constraints</code> can be combined with boolean operators such as not, and, or which are provided
+ as methods in the <code>Constraints</code> interface.</p>
+<pre><code class="language-java">Constraint constraint = bondConstraint.and(angleConstraint);
 </code></pre>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../calculate-energy-without-coordinates/" class="btn btn-neutral float-left" title="Calculate Potential Energy without 3D Coordinates"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../constraint/" class="btn btn-neutral float-right" title="Constraints">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../energy-minimization/" class="btn btn-neutral float-left" title="Energy Minimization"><span class="icon icon-circle-arrow-left"></span> Previous</a>
     </div>
 
   <hr/>
@@ -144,10 +135,8 @@ GradientDescent minimizer = new GradientDescent(mmff);
         </span>
     
     
-      <span><a href="../calculate-energy-without-coordinates/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../energy-minimization/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
-    
-      <span><a href="../constraint/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

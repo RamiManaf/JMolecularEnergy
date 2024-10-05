@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://example.com/</loc>
-         <lastmod>2023-06-02</lastmod>
-         <changefreq>daily</changefreq>
+         <loc>https://ramimanaf.github.io/JMolecularEnergy/</loc>
+         <lastmod>2024-10-05</lastmod>
     </url>
     <url>
-         <loc>https://example.com/calculate-energy-without-coordinates/</loc>
-         <lastmod>2023-06-02</lastmod>
-         <changefreq>daily</changefreq>
+         <loc>https://ramimanaf.github.io/JMolecularEnergy/calculate-energy-without-coordinates/</loc>
+         <lastmod>2024-10-05</lastmod>
     </url>
     <url>
-         <loc>https://example.com/energy-minimization/</loc>
-         <lastmod>2023-06-02</lastmod>
-         <changefreq>daily</changefreq>
+         <loc>https://ramimanaf.github.io/JMolecularEnergy/constraint/</loc>
+         <lastmod>2024-10-05</lastmod>
     </url>
     <url>
-         <loc>https://example.com/mmff94/</loc>
-         <lastmod>2023-06-02</lastmod>
-         <changefreq>daily</changefreq>
+         <loc>https://ramimanaf.github.io/JMolecularEnergy/energy-minimization/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://ramimanaf.github.io/JMolecularEnergy/forcefield/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://ramimanaf.github.io/JMolecularEnergy/mmff94/</loc>
+         <lastmod>2024-10-05</lastmod>
     </url>
 </urlset>
