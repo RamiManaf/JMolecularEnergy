@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "JMolecular Energy"
+version: 1.0.0
+date-released: 2024-10-5
+url: "https://github.com/RamiManaf/JMolecularEnergy"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Abdallah"
+      given-names: "Rami"
+      orcid: "https://orcid.org/0009-0007-6715-3297"
+  doi: "10.1002/jcc.70071"
+  url: https://onlinelibrary.wiley.com/doi/10.1002/jcc.70071
+  journal: "Journal of Computational Chemistry"
+  month: 2
+  start: e70071
+  title: "Extending Chemoinformatics Techniques With JMolecular Energy: A Robust CDK-Based Force Field Library"
+  issue: 6
+  volume: 46
+  year: 2025
