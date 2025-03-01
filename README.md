@@ -1,3 +1,5 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ramimanaf/jme/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ramimanaf/jme/badge.svg)
+
 # JMolecularEnergy
 JME is a Java library for calculating force fields potential energy and it's designed for easy integration into scientific applications. 
 JME is designed to help researchers and scientists explore and understand the behavior of molecules at the atomic level.
